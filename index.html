@@ -473,19 +473,7 @@
             if (snapshot.exists()) {
                 const cloudData = snapshot.data();
                 if (cloudData.matches && cloudData.bonus && window.executeLiveSyncFromCloud) {
-                    const now = new Date();
-
-                    // FIX: Alte/Test-Ergebnisse aus Firebase dürfen Zukunftsspiele nicht als offiziell anzeigen.
-                    // Für alle Spiele, die noch nicht begonnen haben, wird real lokal auf leer gesetzt.
-                    const sanitizedMatches = cloudData.matches.map(match => {
-                        const matchDate = new Date(match.date);
-                        if (matchDate > now) {
-                            return { ...match, real: [null, null] };
-                        }
-                        return match;
-                    });
-
-                    window.executeLiveSyncFromCloud(sanitizedMatches, cloudData.bonus);
+                    window.executeLiveSyncFromCloud(cloudData.matches, cloudData.bonus);
                 }
             }
         });
@@ -763,8 +751,9 @@
                 let cumulativePoints = 0; let pointsHistory = [0];
                 distinctDates.forEach(dStr => {
                     window.matches.forEach(m => {
-                        if(m.date_str.startsWith(dStr) && m.real[0] !== null && m.real[1] !== null) {
-                            let rH = m.real[0]; let rG = m.real[1]; let rDiff = rH - rG;
+                        const visibleReal = getVisibleOfficialResult(m);
+                        if(m.date_str.startsWith(dStr) && visibleReal[0] !== null && visibleReal[1] !== null) {
+                            let rH = visibleReal[0]; let rG = visibleReal[1]; let rDiff = rH - rG;
                             let tH = m.tips[p][0]; let tG = m.tips[p][1];
                             if(tH !== null && tG !== null) {
                                 if(tH === rH && tG === rG) cumulativePoints += 3;
@@ -793,11 +782,38 @@
             { id: 'q7', q: 'Turnier Torschützenkönig', pts: 10, adminRes: '', tips: { Crisha: 'Kane', Eddy: 'Torres', Nicola: 'Mbappe', Gemini: 'Mbappe' } }
         ];
 
+
+        function getMatchStatus(match) {
+            const now = new Date();
+            const start = new Date(match.date);
+            if (match.status === 'LIVE' || match.status === 'live') return 'LIVE';
+            if (match.status === 'FINISHED' || match.status === 'finished') return 'FINISHED';
+            if (now >= start) return 'LIVE';
+            return 'SCHEDULED';
+        }
+
+        function hasOfficialResult(match) {
+            return match && match.real && match.real[0] !== null && match.real[1] !== null;
+        }
+
+        function getVisibleOfficialResult(match) {
+            const status = getMatchStatus(match);
+
+            // Wichtig: Zukunftsspiele zeigen keine alten/Test-Ergebnisse.
+            // Sobald ein Spiel live ist oder beendet wurde, werden die echten Ergebnisse angezeigt.
+            if ((status === 'LIVE' || status === 'FINISHED') && hasOfficialResult(match)) {
+                return match.real;
+            }
+
+            return [null, null];
+        }
+
         function updateUI() {
             let scores = { 'Crisha': {m:0, b:0}, 'Eddy': {m:0, b:0}, 'Nicola': {m:0, b:0}, 'Gemini': {m:0, b:0} };
             window.matches.forEach(m => {
-                if(m.real[0] !== null && m.real[1] !== null) {
-                    let rH = m.real[0]; let rG = m.real[1]; let rDiff = rH - rG;
+                const visibleReal = getVisibleOfficialResult(m);
+                if(visibleReal[0] !== null && visibleReal[1] !== null) {
+                    let rH = visibleReal[0]; let rG = visibleReal[1]; let rDiff = rH - rG;
                     window.players.forEach(p => {
                         let tH = m.tips[p][0]; let tG = m.tips[p][1];
                         if(tH !== null && tG !== null) {
@@ -833,11 +849,16 @@
             let c = document.getElementById('matches-container'); html = '';
             const now = new Date();
             let groupGames = window.matches.filter(m => m.r.includes('Gruppe'));
-            const groupStageClosed = groupGames.every(m => m.real[0] !== null && m.real[1] !== null);
+            const groupStageClosed = groupGames.every(m => {
+                const visibleReal = getVisibleOfficialResult(m);
+                return visibleReal[0] !== null && visibleReal[1] !== null;
+            });
             
             window.matches.forEach((m, index) => {
                 let isGer = (m.h === 'Deutschland' || m.a === 'Deutschland');
                 let isLocked = now >= new Date(m.date); let isKo = m.id >= 73;
+                let matchStatus = getMatchStatus(m);
+                let visibleReal = getVisibleOfficialResult(m);
                 
                 // MULTI-TIER INTERSECTION FILTER CALCULATOR CLAUSE (INNOVATION 5)
                 if(activePhaseFilter === 'GER' && !isGer) return;
@@ -865,7 +886,13 @@
                 let dPct = Math.round((dCount / totalVotes) * 100);
                 let aPct = Math.round((aCount / totalVotes) * 100);
 
-                let tipsHtml = `<div class="tip-row"><span style="color:var(--ger-gold);font-weight:bold;">Offiziell:</span> <span class="real-val">${m.real[0]!==null?m.real[0]:'-'}:${m.real[1]!==null?m.real[1]:'-'}</span></div>`;
+                let officialDisplay = (window.currentUser === 'Admin')
+                    ? `${m.real[0]!==null?m.real[0]:'-'}:${m.real[1]!==null?m.real[1]:'-'}`
+                    : `${visibleReal[0]!==null?visibleReal[0]:'-'}:${visibleReal[1]!==null?visibleReal[1]:'-'}`;
+
+                let officialLabel = matchStatus === 'FINISHED' ? 'Endstand:' : (matchStatus === 'LIVE' ? 'Live:' : 'Offiziell:');
+
+                let tipsHtml = `<div class="tip-row"><span style="color:var(--ger-gold);font-weight:bold;">${officialLabel}</span> <span class="real-val">${officialDisplay}</span></div>`;
                 window.players.forEach(p => {
                     if(p !== window.currentUser) tipsHtml += `<div class="tip-row"><span>${p}:</span> <span class="tip-val">${m.tips[p][0]!==null?m.tips[p][0]+':'+m.tips[p][1]:'-:-'}</span></div>`;
                 });
@@ -917,7 +944,7 @@
                     let teams = {};
                     groupMatches.forEach(m => { if(!teams[m.h]) teams[m.h] = {n: m.h, p:0, gf:0, ga:0, pts:0}; if(!teams[m.a]) teams[m.a] = {n: m.a, p:0, gf:0, ga:0, pts:0}; });
                     groupMatches.forEach(m => {
-                        let score = mMode.id === 'real' ? m.real : m.tips[mMode.id];
+                        let score = mMode.id === 'real' ? getVisibleOfficialResult(m) : m.tips[mMode.id];
                         if(score && score[0] !== null && score[1] !== null) {
                             let h = score[0]; let aw = score[1]; let tH = teams[m.h]; let tA = teams[m.a];
                             tH.p++; tA.p++; tH.gf += h; tH.ga += aw; tA.gf += aw; tA.ga += h;
@@ -953,11 +980,20 @@
             const now = new Date();
             const isLocked = now >= new Date(match.date);
             const groupGames = window.matches.filter(m => m.r.includes('Gruppe'));
-            const groupStageClosed = groupGames.every(m => m.real[0] !== null && m.real[1] !== null);
+            const groupStageClosed = groupGames.every(m => {
+                const visibleReal = getVisibleOfficialResult(m);
+                return visibleReal[0] !== null && visibleReal[1] !== null;
+            });
             const isKo = match.id >= 73;
 
             if(window.currentUser === 'Admin') {
                 match.real[side] = parsed;
+
+                // Wenn Admin während/nach Anstoß ein Ergebnis einträgt, gilt es als Live-Ergebnis.
+                // Vor Anstoß bleibt es gespeichert, wird normalen Usern aber nicht als offiziell angezeigt.
+                if (new Date() >= new Date(match.date) && hasOfficialResult(match)) {
+                    match.status = 'LIVE';
+                }
             } else {
                 if(window.currentUser === 'Gemini' || isLocked || (isKo && !groupStageClosed)) {
                     renderMatches();
@@ -983,7 +1019,8 @@
 
                 if(!el) return;
                 if(diffMs <= 0) {
-                    el.innerText = 'läuft / gesperrt';
+                    const status = getMatchStatus(m);
+                    el.innerText = status === 'FINISHED' ? 'beendet' : 'live / gesperrt';
                     el.style.color = 'var(--ger-gold)';
                     return;
                 }
@@ -1006,61 +1043,34 @@
         }
 
         function saveData() { localStorage.setItem('wm_data_final_all', JSON.stringify(window.matches)); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); if (window.cloudSaveEngine) window.cloudSaveEngine(window.matches, window.bonus); }
-        function loadData() { let d = localStorage.getItem('wm_data_final_all'); let b = localStorage.getItem('wm_bonus_final_all'); if(d){let p=JSON.parse(d); window.matches.forEach(m=>{let f=p.find(x=>x.id==m.id); if(f){m.real=f.real; m.tips=f.tips;}}); } if(b){let pb=JSON.parse(b); window.bonus.forEach(bo=>{let fb=pb.find(x=>x.id==bo.id); if(fb){bo.adminRes=fb.adminRes; bo.tips=fb.tips;}}); } }
+        function loadData() { let d = localStorage.getItem('wm_data_final_all'); let b = localStorage.getItem('wm_bonus_final_all'); if(d){let p=JSON.parse(d); window.matches.forEach(m=>{let f=p.find(x=>x.id==m.id); if(f){m.real=f.real; m.tips=f.tips; if(f.status) m.status=f.status;}}); } if(b){let pb=JSON.parse(b); window.bonus.forEach(bo=>{let fb=pb.find(x=>x.id==bo.id); if(fb){bo.adminRes=fb.adminRes; bo.tips=fb.tips;}}); } }
         setInterval(clockTick, 60000);
     </script>
 
 <script>
 /*
-  OFFICIAL RESULT SAFETY PATCH
-  - Zukunftsspiele zeigen für normale User niemals alte/testweise offizielle Ergebnisse.
-  - Admin kann weiterhin echte Ergebnisse pflegen.
-  - Zusätzliche Bereinigungsfunktion:
-    Im Admin-Profil in der Browser-Konsole ausführen:
-    resetFutureOfficialResults()
+  LIVE-ERGEBNIS PATCH
+  Ergebnis-Logik:
+  - Zukunftsspiel: Offiziell bleibt -:- für normale User, auch wenn alte Testdaten in Firebase liegen.
+  - Live/gestartet: real wird als Live-Ergebnis angezeigt.
+  - Beendet: Admin kann per Konsole markMatchFinished(spielnummer) setzen.
 */
-(function(){
-    function isFutureMatch(match) {
-        return new Date(match.date) > new Date();
+window.markMatchFinished = function(matchId) {
+    if (window.currentUser !== 'Admin') {
+        alert('Nur Admin kann Spiele als beendet markieren.');
+        return;
     }
-
-    window.sanitizeFutureOfficialResults = function(matches) {
-        return (matches || []).map(match => {
-            if (isFutureMatch(match)) {
-                return { ...match, real: [null, null] };
-            }
-            return match;
-        });
-    };
-
-    window.resetFutureOfficialResults = async function() {
-        if (window.currentUser !== 'Admin') {
-            alert('Nur Admin kann Zukunfts-Ergebnisse bereinigen.');
-            return;
-        }
-
-        let changed = false;
-        window.matches = (window.matches || []).map(match => {
-            if (isFutureMatch(match) && match.real && match.real[0] !== null && match.real[1] !== null) {
-                changed = true;
-                return { ...match, real: [null, null] };
-            }
-            return match;
-        });
-
-        if (changed && window.cloudSaveEngine) {
-            await window.cloudSaveEngine(window.matches, window.bonus || []);
-        }
-
-        if (window.renderAll) window.renderAll();
-        else {
-            if (window.renderMatches) window.renderMatches();
-            if (window.updateDashboard) window.updateDashboard();
-        }
-
-        alert(changed ? 'Zukunfts-Ergebnisse wurden gelöscht.' : 'Keine Zukunfts-Ergebnisse gefunden.');
-    };
-})();
+    const match = (window.matches || []).find(m => m.id === matchId);
+    if (!match) {
+        alert('Spiel nicht gefunden.');
+        return;
+    }
+    match.status = 'FINISHED';
+    if (window.saveData) window.saveData();
+    if (window.updateUI) window.updateUI();
+    if (window.renderMatches) window.renderMatches();
+    alert('Spiel ' + matchId + ' wurde als beendet markiert.');
+};
 </script>
 
 </body>
