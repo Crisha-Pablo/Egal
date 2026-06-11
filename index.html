@@ -473,7 +473,19 @@
             if (snapshot.exists()) {
                 const cloudData = snapshot.data();
                 if (cloudData.matches && cloudData.bonus && window.executeLiveSyncFromCloud) {
-                    window.executeLiveSyncFromCloud(cloudData.matches, cloudData.bonus);
+                    const now = new Date();
+
+                    // FIX: Alte/Test-Ergebnisse aus Firebase dürfen Zukunftsspiele nicht als offiziell anzeigen.
+                    // Für alle Spiele, die noch nicht begonnen haben, wird real lokal auf leer gesetzt.
+                    const sanitizedMatches = cloudData.matches.map(match => {
+                        const matchDate = new Date(match.date);
+                        if (matchDate > now) {
+                            return { ...match, real: [null, null] };
+                        }
+                        return match;
+                    });
+
+                    window.executeLiveSyncFromCloud(sanitizedMatches, cloudData.bonus);
                 }
             }
         });
@@ -997,5 +1009,59 @@
         function loadData() { let d = localStorage.getItem('wm_data_final_all'); let b = localStorage.getItem('wm_bonus_final_all'); if(d){let p=JSON.parse(d); window.matches.forEach(m=>{let f=p.find(x=>x.id==m.id); if(f){m.real=f.real; m.tips=f.tips;}}); } if(b){let pb=JSON.parse(b); window.bonus.forEach(bo=>{let fb=pb.find(x=>x.id==bo.id); if(fb){bo.adminRes=fb.adminRes; bo.tips=fb.tips;}}); } }
         setInterval(clockTick, 60000);
     </script>
+
+<script>
+/*
+  OFFICIAL RESULT SAFETY PATCH
+  - Zukunftsspiele zeigen für normale User niemals alte/testweise offizielle Ergebnisse.
+  - Admin kann weiterhin echte Ergebnisse pflegen.
+  - Zusätzliche Bereinigungsfunktion:
+    Im Admin-Profil in der Browser-Konsole ausführen:
+    resetFutureOfficialResults()
+*/
+(function(){
+    function isFutureMatch(match) {
+        return new Date(match.date) > new Date();
+    }
+
+    window.sanitizeFutureOfficialResults = function(matches) {
+        return (matches || []).map(match => {
+            if (isFutureMatch(match)) {
+                return { ...match, real: [null, null] };
+            }
+            return match;
+        });
+    };
+
+    window.resetFutureOfficialResults = async function() {
+        if (window.currentUser !== 'Admin') {
+            alert('Nur Admin kann Zukunfts-Ergebnisse bereinigen.');
+            return;
+        }
+
+        let changed = false;
+        window.matches = (window.matches || []).map(match => {
+            if (isFutureMatch(match) && match.real && match.real[0] !== null && match.real[1] !== null) {
+                changed = true;
+                return { ...match, real: [null, null] };
+            }
+            return match;
+        });
+
+        if (changed && window.cloudSaveEngine) {
+            await window.cloudSaveEngine(window.matches, window.bonus || []);
+        }
+
+        if (window.renderAll) window.renderAll();
+        else {
+            if (window.renderMatches) window.renderMatches();
+            if (window.updateDashboard) window.updateDashboard();
+        }
+
+        alert(changed ? 'Zukunfts-Ergebnisse wurden gelöscht.' : 'Keine Zukunfts-Ergebnisse gefunden.');
+    };
+})();
+</script>
+
 </body>
 </html>
