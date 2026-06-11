@@ -269,6 +269,10 @@
     </style>
 </head>
 <body>
+<!-- Ergebnislogik:
+     Normale User sehen in den Eingabefeldern ihren Tipp.
+     Admin sieht dort offizielle Ergebnisse.
+     Live-Ergebnisse entstehen aktuell manuell durch Admin-Eingabe oder später durch eine echte Ergebnis-API. -->
 
     <!-- PHYSICS PHYSICS BOUNCING FOOTBALL LAYER -->
     <div class="physics-canvas-layer">
@@ -890,7 +894,10 @@
                     ? `${m.real[0]!==null?m.real[0]:'-'}:${m.real[1]!==null?m.real[1]:'-'}`
                     : `${visibleReal[0]!==null?visibleReal[0]:'-'}:${visibleReal[1]!==null?visibleReal[1]:'-'}`;
 
-                let officialLabel = matchStatus === 'FINISHED' ? 'Endstand:' : (matchStatus === 'LIVE' ? 'Live:' : 'Offiziell:');
+                let officialLabel = matchStatus === 'FINISHED' ? 'Endstand:' : (matchStatus === 'LIVE' ? 'Live-Ergebnis:' : 'Offiziell:');
+                if (matchStatus === 'LIVE' && visibleReal[0] === null && visibleReal[1] === null && window.currentUser !== 'Admin') {
+                    officialDisplay = 'noch nicht eingetragen';
+                }
 
                 let tipsHtml = `<div class="tip-row"><span style="color:var(--ger-gold);font-weight:bold;">${officialLabel}</span> <span class="real-val">${officialDisplay}</span></div>`;
                 window.players.forEach(p => {
@@ -902,6 +909,9 @@
                         <div class="match-meta"><span>Spiel ${m.id} • ${m.r}</span><span id="timer-${m.id}"></span></div>
                         <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">🏟️ ${m.stadium || 'Stadion'}</div>
                         <div style="font-size:0.72rem; color:var(--ger-gold); margin-bottom:10px;">🕒 ${m.date_str} Uhr (MESZ)</div>
+                        <div style="font-size:0.68rem; color:var(--text-muted); font-weight:800; text-transform:uppercase; margin-bottom:6px;">
+                            ${window.currentUser === 'Admin' ? 'Offizielles Ergebnis eintragen' : 'Dein Tipp'}
+                        </div>
                         <div class="match-teams">
                             <div class="team-name">${m.h}</div>
                             <div class="score-inputs">
