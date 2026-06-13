@@ -228,6 +228,19 @@
         .tip-row { display: flex; justify-content: space-between; margin-bottom: 5px; align-items: center; }
         .tip-val { font-family: monospace; font-weight: 700; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-subtle); }
         .real-val { color: var(--ger-gold); font-size: 1.1rem; font-weight: 700; font-family: monospace; }
+
+        .special-tip-notice {
+            margin: 8px 0 10px;
+            padding: 7px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 204, 0, 0.35);
+            background: rgba(255, 204, 0, 0.08);
+            color: var(--ger-gold);
+            font-size: 0.72rem;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
         
         .match-ger { border: 1px solid rgba(255, 204, 0, 0.28); background: linear-gradient(180deg, var(--ger-accent-bg), rgba(22,20,10,0.12)); } 
 
@@ -283,7 +296,7 @@
                 <div class="brand-logo-glow"></div>
                 <span>WM 2026 PRO</span>
             </div>
-            <div class="lock-status-lbl" id="lock-lbl">Wähle Profil zum Starten</div>
+            <div class="lock-status-lbl" id="lock-lbl">Profil wählen und direkt starten</div>
             
             <select id="login-user" onchange="resetPasscodeAttemptFlow()" style="background: rgba(255,255,255,0.04); margin-bottom: 10px;">
                 <option value="Crisha">Crisha</option>
@@ -292,16 +305,28 @@
                 <option value="Jana">Jana</option>
                 <option value="Admin">Admin (Verwaltung)</option>
             </select>
-            
-            <div class="passcode-dots-row">
-                <div class="passcode-dot" id="dot-1"></div>
-                <div class="passcode-dot" id="dot-2"></div>
-                <div class="passcode-dot" id="dot-3"></div>
-                <div class="passcode-dot" id="dot-4"></div>
-            </div>
+            <button onclick="submitPasscodeVerificationChain()" style="
+                width: 100%;
+                margin-top: 18px;
+                padding: 16px 18px;
+                border-radius: 18px;
+                border: 1px solid rgba(255,204,0,0.35);
+                background: linear-gradient(135deg, rgba(255,204,0,0.22), rgba(255,255,255,0.06));
+                color: var(--text-main);
+                font-size: 1rem;
+                font-weight: 900;
+                cursor: pointer;
+                letter-spacing: 0.02em;
+            ">Profil öffnen</button>
 
-            <div class="keypad-matrix">
-                <div class="keypad-btn" onclick="pressPasscodeKey(1)">1</div>
+            <div style="
+                margin-top: 12px;
+                color: var(--text-muted);
+                font-size: 0.72rem;
+                line-height: 1.35;
+                text-align: center;
+            ">Keine PIN mehr aktiv – jeder kann jedes Profil öffnen.</div>
+
                 <div class="keypad-btn" onclick="pressPasscodeKey(2)">2</div>
                 <div class="keypad-btn" onclick="pressPasscodeKey(3)">3</div>
                 <div class="keypad-btn" onclick="pressPasscodeKey(4)">4</div>
@@ -327,7 +352,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: jana-player-v1 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: open-access-no-pin-v1 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -582,12 +607,14 @@
         window.addEventListener('DOMContentLoaded', () => {
             PhysicsEngine.init();
             compileDayFiltersSegmentPills();
+            ensurePlayerVisibilityUI();
             resetPasscodeAttemptFlow();
         });
 
         // IDENTITY HOT SWAP CONTROL ROUTINES
         function toggleUserHotSwapPillDropdown(e) {
             e.stopPropagation(); AudioEngine.click();
+            ensurePlayerVisibilityUI();
             let p = document.getElementById('user-dropdown-panel-box');
             p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
         }
@@ -595,338 +622,132 @@
             if (document.activeElement && typeof document.activeElement.blur === 'function') {
                 document.activeElement.blur();
             }
-            document.getElementById('user-dropdown-panel-box').style.display = 'none';
-            document.getElementById('app-wrapper').style.display = 'none';
-            document.getElementById('login-screen').style.display = 'flex';
-            document.getElementById('login-user').value = targetUser;
-            resetPasscodeAttemptFlow();
+
+            const panel = document.getElementById('user-dropdown-panel-box');
+            if (panel) panel.style.display = 'none';
+
+            proceedSystemAccess(targetUser);
         }
         document.body.addEventListener('click', () => { document.getElementById('user-dropdown-panel-box').style.display = 'none'; });
 
         function toggleThemeEngine() { toggleThemeEngineCode(); }
         function toggleThemeEngineCode() { document.documentElement.classList.toggle('light-mode'); AudioEngine.click(); }
 
-        // PASSCODE HANDLER VERIFICATION MECHANISMS (INNOVATION 4)
+        // OPEN ACCESS MODE: keine PIN/Passwörter mehr
         function resetPasscodeAttemptFlow() {
             passcodeBuffer = "";
-            let user = document.getElementById('login-user').value;
-            let lbl = document.getElementById('lock-lbl');
-            let saved = localStorage.getItem('pin_' + user);
-            
-            document.getElementById('lock-pad-box').classList.remove('shake-error');
+            const lbl = document.getElementById('lock-lbl');
+            if (lbl) lbl.innerText = "Profil wählen und direkt starten";
             updatePasscodeDotsGraphic();
-            
-            if(user === 'Admin') { lbl.innerText = "Verwaltungs-PIN erforderlich (0000)"; return; }
-            if(!saved) { lbl.innerText = "Neue PIN für " + user + " festlegen"; }
-            else { lbl.innerText = "PIN für " + user + " eingeben"; }
         }
 
         function pressPasscodeKey(num) {
-            if(passcodeBuffer.length >= 4) return;
-            AudioEngine.click();
-            passcodeBuffer += num;
-            updatePasscodeDotsGraphic();
-            if(passcodeBuffer.length === 4) { setTimeout(() => submitPasscodeVerificationChain(), 2000); }
+            // Alte Keypad-Funktion bleibt als Fallback erhalten.
+            submitPasscodeVerificationChain();
         }
-        function clearPasscodeChain() { AudioEngine.click(); passcodeBuffer = ""; updatePasscodeDotsGraphic(); }
+
+        function clearPasscodeChain() {
+            passcodeBuffer = "";
+            updatePasscodeDotsGraphic();
+        }
 
         function updatePasscodeDotsGraphic() {
             for(let i=1; i<=4; i++) {
                 let d = document.getElementById('dot-' + i);
-                if(passcodeBuffer.length >= i) d.classList.add('filled');
-                else d.classList.remove('filled');
+                if(!d) continue;
+                d.classList.remove('filled');
             }
         }
 
         function submitPasscodeVerificationChain() {
-            if(passcodeBuffer.length < 4) return;
-            let user = document.getElementById('login-user').value;
-            let saved = localStorage.getItem('pin_' + user);
-            let box = document.getElementById('lock-pad-box');
-            
-            if(user === 'Admin') {
-                if(passcodeBuffer === '0000') { proceedSystemAccess(user); }
-                else { triggerPasscodeFaultShake(); }
-                return;
-            }
-            
-            if(!saved) {
-                localStorage.setItem('pin_' + user, passcodeBuffer);
-                alert("Passwort erfolgreich für " + user + " registriert!");
-                proceedSystemAccess(user);
-            } else {
-                if(saved === passcodeBuffer || passcodeBuffer === '9999') { proceedSystemAccess(user); }
-                else { triggerPasscodeFaultShake(); }
-            }
+            const user = document.getElementById('login-user').value;
+            proceedSystemAccess(user);
         }
 
         function triggerPasscodeFaultShake() {
-            AudioEngine.error();
-            let box = document.getElementById('lock-pad-box');
-            box.classList.add('shake-error');
-            passcodeBuffer = "";
-            updatePasscodeDotsGraphic();
-            document.getElementById('lock-lbl').innerText = "Falsche PIN. Erneut versuchen!";
-            setTimeout(() => { box.classList.remove('shake-error'); }, 400);
+            // Keine Fehleranzeige mehr, weil keine PIN mehr geprüft wird.
+            submitPasscodeVerificationChain();
         }
 
         function proceedSystemAccess(user) {
             AudioEngine.save();
 
-            // Wichtig: aktive Eingabe verlassen, damit keine alten Input-Werte
-            // beim Benutzerwechsel unter falschem User gespeichert werden.
             if (document.activeElement && typeof document.activeElement.blur === 'function') {
                 document.activeElement.blur();
             }
 
             window.currentUser = user;
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app-wrapper').style.display = 'block';
-            document.getElementById('user-display').innerText = user;
+
+            const login = document.getElementById('login-screen');
+            const app = document.getElementById('app-wrapper');
+            const display = document.getElementById('user-display');
+
+            if (login) login.style.display = 'none';
+            if (app) app.style.display = 'block';
+            if (display) display.innerText = user;
 
             loadData();
             ensureAllPlayerData();
-            saveData();
-            updateUI();
+            ensurePlayerVisibilityUI();
 
-            // Kritischer Fix:
-            // Beim Wechsel von Crisha -> Eddy -> Nicola müssen alle Cards
-            // mit den Tipps des neuen Users neu gebaut werden.
+            updateUI();
             renderMatches();
             renderBonus();
             renderTablesAndTree();
             calculatePreTournamentAnalysis();
         }
 
-        // ATMOSPHERE SYSTEM RE-TRIGGERS
-        function morphAtmosphereColors(city) {
-            let themes = { 'LA': ['#ff2d55', '#ff9500'], 'NY': ['#007aff', '#5856d6'], 'VAN': ['#34c759', '#00c7be'], 'GER': ['#ff3b30', '#ffcc00'] };
-            let s = themes[city] || themes['LA'];
-            document.documentElement.style.setProperty('--atmosphere-1', s[0]);
-            document.documentElement.style.setProperty('--atmosphere-2', s[1]);
+        function getHumanPlayersForUI() {
+            return (window.players || []).filter(p => p !== 'Gemini');
         }
 
-        // SEGMENTED SEGMENT MULTI-TIER MAPPING LOGIC (INNOVATION 5)
-        function compileDayFiltersSegmentPills() {
-            let container = document.getElementById('day-filter-row');
-            let uniqueDates = [];
+        function ensurePlayerVisibilityUI() {
+            const humanPlayers = getHumanPlayersForUI();
 
-            window.matches.forEach(m => {
-                const fullDate = m.date_str.split(" - ")[0];
-                if(!uniqueDates.includes(fullDate)) uniqueDates.push(fullDate);
-            });
+            const select = document.getElementById('login-user');
+            if (select) {
+                const current = select.value || 'Crisha';
+                select.innerHTML = '';
 
-            uniqueDates.forEach((dateLabel, index) => {
-                const tournamentDay = index + 1;
-                container.innerHTML += `<div class="segment-pill" onclick="setDayFilter('${dateLabel}', this)">Tag ${tournamentDay}</div>`;
-            });
-        }
-
-        function setPhaseFilter(val, el) { resetRowActivePills('phase-filter-row', el); activePhaseFilter = val; renderMatches(); }
-        function setGroupFilter(val, el) { resetRowActivePills('group-filter-row', el); activeGroupFilter = val; renderMatches(); }
-        function setDayFilter(val, el) { resetRowActivePills('day-filter-row', el); activeDayFilter = val; renderMatches(); }
-
-        function resetRowActivePills(rowId, activeEl) {
-            AudioEngine.click();
-            document.getElementById(rowId).querySelectorAll('.segment-pill').forEach(p => p.classList.remove('active'));
-            activeEl.classList.add('active');
-        }
-
-        function nav(tabId, el) {
-            AudioEngine.woosh();
-            document.querySelectorAll('.content-section').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(tabId).className = "content-section active";
-            el.classList.add('active');
-            
-            if(tabId === 'tab-spiele') { morphAtmosphereColors('VAN'); renderMatches(); }
-            if(tabId === 'tab-bonus') { morphAtmosphereColors('NY'); renderBonus(); }
-            if(tabId === 'tab-tabellen') { morphAtmosphereColors('LA'); renderTablesAndTree(); }
-            if(tabId === 'tab-dash') { morphAtmosphereColors('GER'); updateUI(); calculatePreTournamentAnalysis(); }
-        }
-
-        // CORE RENDER ENGINES
-        function calculatePreTournamentAnalysis() {
-            const container = document.getElementById('analysis-container');
-            if (!container) return;
-
-            try {
-                let out = '';
-
-                window.players.forEach(p => {
-                    let totalGoals = 0;
-                    let homeWins = 0;
-                    let draws = 0;
-                    let awayWins = 0;
-                    let highScoringCount = 0;
-                    let completedTips = 0;
-
-                    window.matches.forEach(m => {
-                        const tip = m.tips && m.tips[p] ? m.tips[p] : null;
-
-                        if (tip && tip[0] !== null && tip[1] !== null) {
-                            const h = Number(tip[0]);
-                            const a = Number(tip[1]);
-
-                            if (Number.isFinite(h) && Number.isFinite(a)) {
-                                completedTips++;
-                                totalGoals += h + a;
-
-                                if (h > a) homeWins++;
-                                else if (h < a) awayWins++;
-                                else draws++;
-
-                                if ((h + a) >= 4) highScoringCount++;
-                            }
-                        }
-                    });
-
-                    const avgGoals = completedTips > 0 ? (totalGoals / completedTips).toFixed(2) : '0.00';
-
-                    out += `
-                        <div class="analysis-card">
-                            <div class="analysis-user-title">${p}</div>
-                            <div class="analysis-metric">Getippt: <span>${completedTips}/104</span></div>
-                            <div class="analysis-metric">Tore: <span>${totalGoals}</span></div>
-                            <div class="analysis-metric">Ø Tore: <span>${avgGoals}</span></div>
-                            <div class="analysis-metric">Heim (1): <span>${homeWins}</span></div>
-                            <div class="analysis-metric">Remis (X): <span>${draws}</span></div>
-                            <div class="analysis-metric">Gast (2): <span>${awayWins}</span></div>
-                            <div class="analysis-metric">Torreich (4+): <span>${highScoringCount}</span></div>
-                        </div>`;
+                humanPlayers.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p;
+                    opt.textContent = p;
+                    select.appendChild(opt);
                 });
 
-                container.innerHTML = out;
-            } catch (err) {
-                console.error('Analyse konnte nicht gerendert werden:', err);
-                container.innerHTML = `<div class="analysis-card">
-                    <div class="analysis-user-title">Analyse</div>
-                    <div class="analysis-metric">Status: <span>Fehler beim Laden</span></div>
-                </div>`;
+                const adminOpt = document.createElement('option');
+                adminOpt.value = 'Admin';
+                adminOpt.textContent = 'Admin (Verwaltung)';
+                select.appendChild(adminOpt);
+
+                select.value = humanPlayers.includes(current) || current === 'Admin' ? current : 'Crisha';
+            }
+
+            const panel = document.getElementById('user-dropdown-panel-box');
+            if (panel) {
+                panel.innerHTML = '';
+
+                humanPlayers.forEach(p => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = p;
+                    btn.onclick = () => hotSwapUserAccount(p);
+                    panel.appendChild(btn);
+                });
+
+                const adminBtn = document.createElement('button');
+                adminBtn.type = 'button';
+                adminBtn.textContent = 'Admin';
+                adminBtn.onclick = () => hotSwapUserAccount('Admin');
+                panel.appendChild(adminBtn);
             }
         }
 
-        function renderPointsProgressionChart() {
-            const canvas = document.getElementById('pointsChart');
-            if (!canvas) return;
-
-            if (typeof Chart === 'undefined') {
-                console.warn('Chart.js ist noch nicht geladen. Punkteverlauf wird übersprungen.');
-                return;
-            }
-
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return;
-
-            try {
-                let distinctDates = [];
-                window.matches.forEach(m => {
-                    let dayStr = m.date_str.split(" - ")[0];
-                    if(!distinctDates.includes(dayStr)) distinctDates.push(dayStr);
-                });
-
-                let datasets = window.players.map((p, idx) => {
-                    let colors = ['#ffcc00', '#0071e3', '#ff3b30', '#34c759', '#86868b', '#bf5af2'];
-                    let cumulativePoints = 0;
-                    let pointsHistory = [0];
-
-                    distinctDates.forEach(dStr => {
-                        window.matches.forEach(m => {
-                            if(m.date_str.startsWith(dStr) && m.real[0] !== null && m.real[1] !== null) {
-                                let rH = m.real[0];
-                                let rG = m.real[1];
-                                let rDiff = rH - rG;
-                                let tip = (m.tips && m.tips[p]) ? m.tips[p] : [null, null];
-                                let tH = tip[0];
-                                let tG = tip[1];
-
-                                if(tH !== null && tG !== null) {
-                                    if(tH === rH && tG === rG) cumulativePoints += 3;
-                                    else if(Math.sign(tH - tG) === Math.sign(rDiff)) cumulativePoints += 1;
-                                }
-                            }
-                        });
-
-                        pointsHistory.push(cumulativePoints);
-                    });
-
-                    return {
-                        label: p,
-                        data: pointsHistory,
-                        borderColor: colors[idx],
-                        backgroundColor: colors[idx] + '02',
-                        borderWidth: 3,
-                        tension: 0.2,
-                        pointRadius: 1
-                    };
-                });
-
-                if(window.chartInstance) window.chartInstance.destroy();
-
-                window.chartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Start', ...distinctDates.map(d => d.replace(" 2026", ""))],
-                        datasets: datasets
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                grid: { color: 'rgba(255,255,255,0.01)' },
-                                ticks: { color: '#86868b', font: { size: 9 } }
-                            },
-                            y: {
-                                grid: { color: 'rgba(255,255,255,0.01)' },
-                                ticks: { color: '#86868b' }
-                            }
-                        },
-                        plugins: {
-                            legend: { labels: { color: '#fff' } }
-                        }
-                    }
-                });
-            } catch (err) {
-                console.error('Punkteverlauf konnte nicht gerendert werden:', err);
-            }
-        }
-
-        window.bonus = [
-            { id: 'q1', q: 'Wer wird Weltmeister?', pts: 15, adminRes: '', tips: { Crisha: 'Frankreich', Eddy: 'Spanien', Nicola: 'Frankreich', Jana: '', Gemini: 'Spanien' } },
-            { id: 'q2', q: 'Die DFB-Reise', pts: 10, adminRes: '', tips: { Crisha: 'Halbfinale', Eddy: 'Viertelfinale', Nicola: 'Halbfinale', Jana: '', Gemini: 'Finale' } },
-            { id: 'q3', q: 'Bester DFB Torschütze', pts: 5, adminRes: '', tips: { Crisha: 'Wirtz', Eddy: 'Wirtz', Nicola: 'Wirtz', Jana: '', Gemini: 'Havertz' } },
-            { id: 'q4', q: 'Karten-König (DFB)', pts: 5, adminRes: '', tips: { Crisha: 'Rüdiger', Eddy: 'Raum', Nicola: 'Musiala', Jana: '', Gemini: 'Andrich' } },
-            { id: 'q5', q: 'Elfmeter-Krimi (DFB)?', pts: 5, adminRes: '', tips: { Crisha: 'Nein', Eddy: 'Nein', Nicola: 'Nein', Jana: '', Gemini: 'Ja' } },
-            { id: 'q6', q: 'Punkte DFB Vorrunde', pts: 5, adminRes: '', tips: { Crisha: '9', Eddy: '9', Nicola: '6', Jana: '', Gemini: '7' } },
-            { id: 'q7', q: 'Turnier Torschützenkönig', pts: 10, adminRes: '', tips: { Crisha: 'Kane', Eddy: 'Torres', Nicola: 'Mbappe', Jana: '', Gemini: 'Mbappe' } }
-        ];
-
-
-        function ensureAllPlayerData() {
-            if (!Array.isArray(window.players)) return;
-
-            if (Array.isArray(window.matches)) {
-                window.matches.forEach(m => {
-                    if (!m.tips || typeof m.tips !== 'object') m.tips = {};
-                    window.players.forEach(p => {
-                        if (!m.tips[p]) m.tips[p] = [null, null];
-                    });
-                });
-            }
-
-            if (Array.isArray(window.bonus)) {
-                window.bonus.forEach(b => {
-                    if (!b.tips || typeof b.tips !== 'object') b.tips = {};
-                    window.players.forEach(p => {
-                        if (typeof b.tips[p] === 'undefined') b.tips[p] = '';
-                    });
-                });
-            }
-        }
 
         function updateUI() {
             ensureAllPlayerData();
+            ensurePlayerVisibilityUI();
             let scores = {}; window.players.forEach(p => scores[p] = {m:0, b:0});
             window.matches.forEach(m => {
                 if(m.real[0] !== null && m.real[1] !== null) {
@@ -964,7 +785,36 @@
             renderPointsProgressionChart();
         }
 
+
+        const JANA_SPECIAL_TIP_DEADLINE = new Date('2026-06-13T23:00:00+02:00');
+
+        function isJanaSpecialTipAllowed(match, userName) {
+            if (userName !== 'Jana') return false;
+            if (!match) return false;
+
+            const now = new Date();
+            const matchStart = new Date(match.date);
+
+            // Sonderaktion nur bis heute 23:00 Uhr.
+            if (now > JANA_SPECIAL_TIP_DEADLINE) return false;
+
+            // Nur für die ersten Spiele, also Spiele, die bis zur Sonderfrist bereits angesetzt/gestartet sind.
+            if (matchStart > JANA_SPECIAL_TIP_DEADLINE) return false;
+
+            // Sie ist relevant für Spiele, die eigentlich schon gesperrt wären.
+            return now >= matchStart;
+        }
+
+        function getJanaSpecialInfoText(match) {
+            if (window.currentUser === 'Jana' && isJanaSpecialTipAllowed(match, 'Jana')) {
+                return `<div class="special-tip-notice">Sonderfreigabe für Jana: Tipp bis heute 23:00 Uhr möglich</div>`;
+            }
+            return '';
+        }
+
+
         function renderMatches() {
+            ensureAllPlayerData();
             let c = document.getElementById('matches-container'); html = '';
             const now = new Date();
             let groupGames = window.matches.filter(m => m.r.includes('Gruppe'));
@@ -986,7 +836,8 @@
                 if(window.currentUser === 'Admin') { valH = m.real[0]; valA = m.real[1]; }
                 else if(window.currentUser !== 'Gemini') { let ownTip = (m.tips && m.tips[window.currentUser]) ? m.tips[window.currentUser] : [null, null]; valH = ownTip[0]; valA = ownTip[1]; }
                 
-                let dis = (window.currentUser === 'Admin') ? '' : ((window.currentUser === 'Gemini' || isLocked || (isKo && !groupStageClosed)) ? 'disabled' : '');
+                let janaSpecialAllowed = isJanaSpecialTipAllowed(m, window.currentUser);
+                let dis = (window.currentUser === 'Admin') ? '' : ((window.currentUser === 'Gemini' || ((isLocked || (isKo && !groupStageClosed)) && !janaSpecialAllowed)) ? 'disabled' : '');
                 
                 let hCount = 0; let dCount = 0; let aCount = 0;
                 window.players.forEach(p => {
@@ -1013,6 +864,7 @@
                         <div style="font-size:0.68rem; color:var(--text-muted); font-weight:800; text-transform:uppercase; margin-bottom:6px;">
                             ${window.currentUser === 'Admin' ? 'Offizielles Ergebnis eintragen' : 'Dein Tipp'}
                         </div>
+                        ${getJanaSpecialInfoText(m)}
                         <div class="match-teams">
                             <div class="team-name">${m.h}</div>
                             <div class="score-inputs">
@@ -1033,6 +885,7 @@
         }
 
         function renderBonus() {
+            ensureAllPlayerData();
             let html = '';
             window.bonus.forEach(b => {
                 let adminHtml = window.currentUser === 'Admin' ? `<div class="b-admin-res"><input type="text" value="${b.adminRes}" onchange="saveBonus('${b.id}', this.value)"></div>` : `<div class="b-admin-res"><span style="color:white;font-weight:bold">${b.adminRes || '---'}</span></div>`;
@@ -1045,6 +898,7 @@
         }
 
         function renderTablesAndTree() {
+            ensureAllPlayerData();
             const currentGroup = document.getElementById('table-group-select').value;
             let compContainer = document.getElementById('tables-comparison-container'); let trC = document.getElementById('tree-container');
             compContainer.innerHTML = ''; trC.innerHTML = '';
@@ -1102,7 +956,9 @@
             if(window.currentUser === 'Admin' && targetUser === 'Admin') {
                 match.real[side] = parsed;
             } else {
-                if(targetUser === 'Admin' || targetUser === 'Gemini' || isLocked || (isKo && !groupStageClosed)) {
+                const janaSpecialAllowed = isJanaSpecialTipAllowed(match, targetUser);
+
+                if(targetUser === 'Admin' || targetUser === 'Gemini' || ((isLocked || (isKo && !groupStageClosed)) && !janaSpecialAllowed)) {
                     renderMatches();
                     return;
                 }
@@ -1129,7 +985,11 @@
 
                 if(!el) return;
                 if(diffMs <= 0) {
-                    el.innerText = 'läuft / gesperrt';
+                    if (window.currentUser === 'Jana' && isJanaSpecialTipAllowed(m, 'Jana')) {
+                        el.innerText = 'Jana-Sondertipp bis 23:00';
+                    } else {
+                        el.innerText = 'läuft / gesperrt';
+                    }
                     el.style.color = 'var(--ger-gold)';
                     return;
                 }
@@ -1181,7 +1041,7 @@
             calculatePreTournamentAnalysis();
         };
 
-        function saveData() { localStorage.setItem('wm_data_final_all', JSON.stringify(window.matches)); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); if (window.cloudSaveEngine) window.cloudSaveEngine(window.matches, window.bonus); }
+        function saveData() { ensureAllPlayerData(); localStorage.setItem('wm_data_final_all', JSON.stringify(window.matches)); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); if (window.cloudSaveEngine) window.cloudSaveEngine(window.matches, window.bonus); }
         function loadData() { let d = localStorage.getItem('wm_data_final_all'); let b = localStorage.getItem('wm_bonus_final_all'); if(d){let p=JSON.parse(d); window.matches.forEach(m=>{let f=p.find(x=>x.id==m.id); if(f){m.real=f.real; m.tips=f.tips;}}); } if(b){let pb=JSON.parse(b); window.bonus.forEach(bo=>{let fb=pb.find(x=>x.id==bo.id); if(fb){bo.adminRes=fb.adminRes; bo.tips=fb.tips;}}); } ensureAllPlayerData(); }
 
         document.addEventListener('DOMContentLoaded', function() {
