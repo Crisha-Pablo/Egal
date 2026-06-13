@@ -691,6 +691,7 @@
             renderMatches();
             renderBonus();
             renderTablesAndTree();
+            calculatePreTournamentAnalysis();
         }
 
         // ATMOSPHERE SYSTEM RE-TRIGGERS
@@ -737,7 +738,7 @@
             if(tabId === 'tab-spiele') { morphAtmosphereColors('VAN'); renderMatches(); }
             if(tabId === 'tab-bonus') { morphAtmosphereColors('NY'); renderBonus(); }
             if(tabId === 'tab-tabellen') { morphAtmosphereColors('LA'); renderTablesAndTree(); }
-            if(tabId === 'tab-dash') { morphAtmosphereColors('GER'); updateUI(); }
+            if(tabId === 'tab-dash') { morphAtmosphereColors('GER'); updateUI(); calculatePreTournamentAnalysis(); }
         }
 
         // CORE RENDER ENGINES
@@ -753,7 +754,13 @@
                         if((tip[0] + tip[1]) >= 4) highScoringCount++;
                     }
                 });
-                html += `<div class="analysis-card"><div class="analysis-user-title">${p}</div><div class="analysis-metric">Tore: <span>${totalGoals}</span></div><div class="analysis-metric">Ø Tore: <span>${(totalGoals/104).toFixed(2)}</span></div><div class="analysis-metric">Heim (1): <span>${homeWins}</span></div><div class="analysis-metric">Remis (X): <span>${draws}</span></div><div class="analysis-metric">Gast (2): <span>${awayWins}</span></div><div class="analysis-metric">Torreich (4+): <span>${highScoringCount}</span></div></div>`;
+                let completedTips = 0;
+                window.matches.forEach(m => {
+                    let tip = m.tips[p];
+                    if(tip && tip[0] !== null && tip[1] !== null) completedTips++;
+                });
+                let avgGoals = completedTips > 0 ? (totalGoals / completedTips).toFixed(2) : '0.00';
+                html += `<div class="analysis-card"><div class="analysis-user-title">${p}</div><div class="analysis-metric">Getippt: <span>${completedTips}/104</span></div><div class="analysis-metric">Tore: <span>${totalGoals}</span></div><div class="analysis-metric">Ø Tore: <span>${avgGoals}</span></div><div class="analysis-metric">Heim (1): <span>${homeWins}</span></div><div class="analysis-metric">Remis (X): <span>${draws}</span></div><div class="analysis-metric">Gast (2): <span>${awayWins}</span></div><div class="analysis-metric">Torreich (4+): <span>${highScoringCount}</span></div></div>`;
             });
             container.innerHTML = html;
         }
@@ -834,6 +841,7 @@
                 <div class="stat-box"><div class="stat-val">${myObj.b}</div><div class="stat-lbl">Bonus</div></div>
             `;
             renderPointsProgressionChart();
+            calculatePreTournamentAnalysis();
         }
 
         function renderMatches() {
@@ -986,6 +994,7 @@
             updateUI();
             renderMatches();
             renderTablesAndTree();
+            calculatePreTournamentAnalysis();
         }
 
         function clockTick() {
@@ -1048,6 +1057,7 @@
             renderMatches();
             renderBonus();
             renderTablesAndTree();
+            calculatePreTournamentAnalysis();
         };
 
         function saveData() { localStorage.setItem('wm_data_final_all', JSON.stringify(window.matches)); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); if (window.cloudSaveEngine) window.cloudSaveEngine(window.matches, window.bonus); }
