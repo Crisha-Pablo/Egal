@@ -279,7 +279,147 @@
         .nav-icon { font-size: 1.45rem; display: block; margin-bottom: 3px; transition: transform 0.3s var(--sf-ease); }
         .nav-item.active .nav-icon { transform: scale(1.14); }
 
-    </style>
+    
+        /* OPEN ACCESS LOGIN REPAIR */
+        #login-screen .passcode-dots-row,
+        #login-screen .keypad-matrix,
+        #login-screen .key-btn,
+        #login-screen .num-key,
+        #login-screen .delete-key {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        .open-access-login-card {
+            width: min(88vw, 430px);
+            margin: 0 auto;
+            padding: 28px 24px;
+            border-radius: 30px;
+            background: rgba(15,15,17,0.94);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 20px 70px rgba(0,0,0,0.5);
+        }
+
+        .open-access-title {
+            color: var(--text-main);
+            font-size: 1.7rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .open-access-select {
+            width: 100%;
+            padding: 15px 16px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,204,0,0.35);
+            background: rgba(255,255,255,0.06);
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 800;
+            outline: none;
+            margin-bottom: 14px;
+        }
+
+        .open-access-button {
+            width: 100%;
+            padding: 16px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,204,0,0.45);
+            background: linear-gradient(135deg, rgba(255,204,0,0.28), rgba(255,255,255,0.07));
+            color: var(--text-main);
+            font-size: 1.05rem;
+            font-weight: 950;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+        }
+
+        .open-access-note {
+            margin-top: 14px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            line-height: 1.35;
+            text-align: center;
+        }
+
+
+        /* FINAL OPEN ACCESS LOGIN FIX */
+        #login-screen {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        #login-screen .ios-lock-pad,
+        #login-screen .passcode-dots-row,
+        #login-screen .keypad-matrix,
+        #login-screen .keypad-btn,
+        #login-screen .key-btn,
+        #login-screen .num-key,
+        #login-screen .delete-key {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        .open-access-login-card {
+            width: min(88vw, 430px);
+            margin: 0 auto;
+            padding: 28px 24px;
+            border-radius: 30px;
+            background: rgba(15,15,17,0.94);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 20px 70px rgba(0,0,0,0.5);
+        }
+
+        .open-access-title {
+            color: var(--text-main);
+            font-size: 1.7rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .open-access-select {
+            width: 100%;
+            padding: 15px 16px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,204,0,0.35);
+            background: rgba(255,255,255,0.06);
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 800;
+            outline: none;
+            margin-bottom: 14px;
+        }
+
+        .open-access-button {
+            width: 100%;
+            padding: 16px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,204,0,0.45);
+            background: linear-gradient(135deg, rgba(255,204,0,0.28), rgba(255,255,255,0.07));
+            color: var(--text-main);
+            font-size: 1.05rem;
+            font-weight: 950;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+        }
+
+        .open-access-note {
+            margin-top: 14px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            line-height: 1.35;
+            text-align: center;
+        }
+
+</style>
 </head>
 <body>
 
@@ -291,53 +431,21 @@
 
     <!-- 1. AUTH SCREEN KEYPAD OVERLAY -->
     <div id="login-screen">
-        <div class="ios-lock-pad" id="lock-pad-box">
-            <div class="brand-monolith" style="justify-content: center; margin-bottom: 10px;">
-                <div class="brand-logo-glow"></div>
-                <span>WM 2026 PRO</span>
-            </div>
-            <div class="lock-status-lbl" id="lock-lbl">Profil wählen und direkt starten</div>
-            
-            <select id="login-user" onchange="resetPasscodeAttemptFlow()" style="background: rgba(255,255,255,0.04); margin-bottom: 10px;">
+        <div class="open-access-login-card">
+            <div class="open-access-title">Profil öffnen</div>
+
+            <select id="login-user" class="open-access-select">
                 <option value="Crisha">Crisha</option>
                 <option value="Eddy">Eddy</option>
                 <option value="Nicola">Nicola</option>
                 <option value="Jana">Jana</option>
-                <option value="Admin">Admin (Verwaltung)</option>
+                <option value="Admin">Admin</option>
             </select>
-            <button onclick="submitPasscodeVerificationChain()" style="
-                width: 100%;
-                margin-top: 18px;
-                padding: 16px 18px;
-                border-radius: 18px;
-                border: 1px solid rgba(255,204,0,0.35);
-                background: linear-gradient(135deg, rgba(255,204,0,0.22), rgba(255,255,255,0.06));
-                color: var(--text-main);
-                font-size: 1rem;
-                font-weight: 900;
-                cursor: pointer;
-                letter-spacing: 0.02em;
-            ">Profil öffnen</button>
 
-            <div style="
-                margin-top: 12px;
-                color: var(--text-muted);
-                font-size: 0.72rem;
-                line-height: 1.35;
-                text-align: center;
-            ">Keine PIN mehr aktiv – jeder kann jedes Profil öffnen.</div>
+            <button class="open-access-button" onclick="submitPasscodeVerificationChain()">Profil öffnen</button>
 
-                <div class="keypad-btn" onclick="pressPasscodeKey(2)">2</div>
-                <div class="keypad-btn" onclick="pressPasscodeKey(3)">3</div>
-                <div class="keypad-btn" onclick="pressPasscodeKey(4)">4</div>
-                <div class="keypad-btn" onclick="pressPasscodeKey(5)">5</div>
-                <div class="keypad-btn" onclick="pressPasscodeKey(6)">6</div>
-                <div class="keypad-btn" onclick="pressPasscodeKey(7)">7</div>
-                <div class="keypad-btn" onclick="pressPasscodeKey(8)">8</div>
-                <div class="keypad-btn" onclick="pressPasscodeKey(9)">9</div>
-                <div class="keypad-btn" style="background:transparent; border-color:transparent; font-size:0.9rem;" onclick="clearPasscodeChain()">Löschen</div>
-                <div class="keypad-btn" onclick="pressPasscodeKey(0)">0</div>
-                <div class="keypad-btn" style="background:transparent; border-color:transparent; font-size:0.9rem; color:var(--text-muted);" onclick="submitPasscodeVerificationChain()">OK</div>
+            <div class="open-access-note">
+                Keine PIN aktiv. Jeder kann jedes Profil direkt öffnen.
             </div>
         </div>
     </div>
@@ -352,7 +460,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: open-access-no-pin-v1 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: open-access-final-clean-v3 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -633,39 +741,25 @@
         function toggleThemeEngine() { toggleThemeEngineCode(); }
         function toggleThemeEngineCode() { document.documentElement.classList.toggle('light-mode'); AudioEngine.click(); }
 
-        // OPEN ACCESS MODE: keine PIN/Passwörter mehr
-        function resetPasscodeAttemptFlow() {
-            passcodeBuffer = "";
-            const lbl = document.getElementById('lock-lbl');
-            if (lbl) lbl.innerText = "Profil wählen und direkt starten";
-            updatePasscodeDotsGraphic();
-        }
+
+        // FINAL OPEN ACCESS MODE: keine PIN/Passwörter
+        function resetPasscodeAttemptFlow() {}
 
         function pressPasscodeKey(num) {
-            // Alte Keypad-Funktion bleibt als Fallback erhalten.
             submitPasscodeVerificationChain();
         }
 
-        function clearPasscodeChain() {
-            passcodeBuffer = "";
-            updatePasscodeDotsGraphic();
-        }
+        function clearPasscodeChain() {}
 
-        function updatePasscodeDotsGraphic() {
-            for(let i=1; i<=4; i++) {
-                let d = document.getElementById('dot-' + i);
-                if(!d) continue;
-                d.classList.remove('filled');
-            }
-        }
+        function updatePasscodeDotsGraphic() {}
 
         function submitPasscodeVerificationChain() {
-            const user = document.getElementById('login-user').value;
+            const select = document.getElementById('login-user');
+            const user = select ? select.value : 'Crisha';
             proceedSystemAccess(user);
         }
 
         function triggerPasscodeFaultShake() {
-            // Keine Fehleranzeige mehr, weil keine PIN mehr geprüft wird.
             submitPasscodeVerificationChain();
         }
 
@@ -686,16 +780,17 @@
             if (app) app.style.display = 'block';
             if (display) display.innerText = user;
 
-            loadData();
-            ensureAllPlayerData();
-            ensurePlayerVisibilityUI();
+            if (typeof loadData === 'function') loadData();
+            if (typeof ensureAllPlayerData === 'function') ensureAllPlayerData();
+            if (typeof ensurePlayerVisibilityUI === 'function') ensurePlayerVisibilityUI();
 
-            updateUI();
-            renderMatches();
-            renderBonus();
-            renderTablesAndTree();
-            calculatePreTournamentAnalysis();
+            if (typeof updateUI === 'function') updateUI();
+            if (typeof renderMatches === 'function') renderMatches();
+            if (typeof renderBonus === 'function') renderBonus();
+            if (typeof renderTablesAndTree === 'function') renderTablesAndTree();
+            if (typeof calculatePreTournamentAnalysis === 'function') calculatePreTournamentAnalysis();
         }
+
 
         function getHumanPlayersForUI() {
             return (window.players || []).filter(p => p !== 'Gemini');
