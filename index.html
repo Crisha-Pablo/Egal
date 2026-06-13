@@ -743,58 +743,148 @@
 
         // CORE RENDER ENGINES
         function calculatePreTournamentAnalysis() {
-            let container = document.getElementById('analysis-container'); let html = '';
-            window.players.forEach(p => {
-                let totalGoals = 0; let homeWins = 0; let draws = 0; let awayWins = 0; let highScoringCount = 0;
-                window.matches.forEach(m => {
-                    let tip = m.tips[p];
-                    if(tip && tip[0] !== null && tip[1] !== null) {
-                        totalGoals += (tip[0] + tip[1]);
-                        if(tip[0] > tip[1]) homeWins++; else if(tip[0] < tip[1]) awayWins++; else draws++;
-                        if((tip[0] + tip[1]) >= 4) highScoringCount++;
-                    }
-                });
-                let completedTips = 0;
-                window.matches.forEach(m => {
-                    let tip = m.tips[p];
-                    if(tip && tip[0] !== null && tip[1] !== null) completedTips++;
-                });
-                let avgGoals = completedTips > 0 ? (totalGoals / completedTips).toFixed(2) : '0.00';
-                html += `<div class="analysis-card"><div class="analysis-user-title">${p}</div><div class="analysis-metric">Getippt: <span>${completedTips}/104</span></div><div class="analysis-metric">Tore: <span>${totalGoals}</span></div><div class="analysis-metric">Ø Tore: <span>${avgGoals}</span></div><div class="analysis-metric">Heim (1): <span>${homeWins}</span></div><div class="analysis-metric">Remis (X): <span>${draws}</span></div><div class="analysis-metric">Gast (2): <span>${awayWins}</span></div><div class="analysis-metric">Torreich (4+): <span>${highScoringCount}</span></div></div>`;
-            });
-            container.innerHTML = html;
-        }
+            const container = document.getElementById('analysis-container');
+            if (!container) return;
 
-        function renderPointsProgressionChart() {
-            let ctx = document.getElementById('pointsChart').getContext('2d');
-            let distinctDates = [];
-            window.matches.forEach(m => {
-                let dayStr = m.date_str.split(" - ")[0];
-                if(!distinctDates.includes(dayStr)) distinctDates.push(dayStr);
-            });
-            let datasets = window.players.map((p, idx) => {
-                let colors = ['#ffcc00', '#0071e3', '#ff3b30', '#86868b'];
-                let cumulativePoints = 0; let pointsHistory = [0];
-                distinctDates.forEach(dStr => {
+            try {
+                let out = '';
+
+                window.players.forEach(p => {
+                    let totalGoals = 0;
+                    let homeWins = 0;
+                    let draws = 0;
+                    let awayWins = 0;
+                    let highScoringCount = 0;
+                    let completedTips = 0;
+
                     window.matches.forEach(m => {
-                        if(m.date_str.startsWith(dStr) && m.real[0] !== null && m.real[1] !== null) {
-                            let rH = m.real[0]; let rG = m.real[1]; let rDiff = rH - rG;
-                            let tH = m.tips[p][0]; let tG = m.tips[p][1];
-                            if(tH !== null && tG !== null) {
-                                if(tH === rH && tG === rG) cumulativePoints += 3;
-                                else if(Math.sign(tH - tG) === Math.sign(rDiff)) cumulativePoints += 1;
+                        const tip = m.tips && m.tips[p] ? m.tips[p] : null;
+
+                        if (tip && tip[0] !== null && tip[1] !== null) {
+                            const h = Number(tip[0]);
+                            const a = Number(tip[1]);
+
+                            if (Number.isFinite(h) && Number.isFinite(a)) {
+                                completedTips++;
+                                totalGoals += h + a;
+
+                                if (h > a) homeWins++;
+                                else if (h < a) awayWins++;
+                                else draws++;
+
+                                if ((h + a) >= 4) highScoringCount++;
                             }
                         }
                     });
-                    pointsHistory.push(cumulativePoints);
+
+                    const avgGoals = completedTips > 0 ? (totalGoals / completedTips).toFixed(2) : '0.00';
+
+                    out += `
+                        <div class="analysis-card">
+                            <div class="analysis-user-title">${p}</div>
+                            <div class="analysis-metric">Getippt: <span>${completedTips}/104</span></div>
+                            <div class="analysis-metric">Tore: <span>${totalGoals}</span></div>
+                            <div class="analysis-metric">Ø Tore: <span>${avgGoals}</span></div>
+                            <div class="analysis-metric">Heim (1): <span>${homeWins}</span></div>
+                            <div class="analysis-metric">Remis (X): <span>${draws}</span></div>
+                            <div class="analysis-metric">Gast (2): <span>${awayWins}</span></div>
+                            <div class="analysis-metric">Torreich (4+): <span>${highScoringCount}</span></div>
+                        </div>`;
                 });
-                return { label: p, data: pointsHistory, borderColor: colors[idx], backgroundColor: colors[idx]+'02', borderWidth: 3, tension: 0.2, pointRadius: 1 };
-            });
-            if(window.chartInstance) window.chartInstance.destroy();
-            window.chartInstance = new Chart(ctx, {
-                type: 'line', data: { labels: ['Start', ...distinctDates.map(d=>d.replace(" 2026", ""))], datasets: datasets },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid:{color:'rgba(255,255,255,0.01)'}, ticks:{color:'#86868b', font:{size:9}} }, y: { grid:{color:'rgba(255,255,255,0.01)'}, ticks:{color:'#86868b'} } }, plugins: { legend: { labels:{color:'#fff'} } } }
-            });
+
+                container.innerHTML = out;
+            } catch (err) {
+                console.error('Analyse konnte nicht gerendert werden:', err);
+                container.innerHTML = `<div class="analysis-card">
+                    <div class="analysis-user-title">Analyse</div>
+                    <div class="analysis-metric">Status: <span>Fehler beim Laden</span></div>
+                </div>`;
+            }
+        }
+
+        function renderPointsProgressionChart() {
+            const canvas = document.getElementById('pointsChart');
+            if (!canvas) return;
+
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js ist noch nicht geladen. Punkteverlauf wird übersprungen.');
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            try {
+                let distinctDates = [];
+                window.matches.forEach(m => {
+                    let dayStr = m.date_str.split(" - ")[0];
+                    if(!distinctDates.includes(dayStr)) distinctDates.push(dayStr);
+                });
+
+                let datasets = window.players.map((p, idx) => {
+                    let colors = ['#ffcc00', '#0071e3', '#ff3b30', '#86868b'];
+                    let cumulativePoints = 0;
+                    let pointsHistory = [0];
+
+                    distinctDates.forEach(dStr => {
+                        window.matches.forEach(m => {
+                            if(m.date_str.startsWith(dStr) && m.real[0] !== null && m.real[1] !== null) {
+                                let rH = m.real[0];
+                                let rG = m.real[1];
+                                let rDiff = rH - rG;
+                                let tH = m.tips[p][0];
+                                let tG = m.tips[p][1];
+
+                                if(tH !== null && tG !== null) {
+                                    if(tH === rH && tG === rG) cumulativePoints += 3;
+                                    else if(Math.sign(tH - tG) === Math.sign(rDiff)) cumulativePoints += 1;
+                                }
+                            }
+                        });
+
+                        pointsHistory.push(cumulativePoints);
+                    });
+
+                    return {
+                        label: p,
+                        data: pointsHistory,
+                        borderColor: colors[idx],
+                        backgroundColor: colors[idx] + '02',
+                        borderWidth: 3,
+                        tension: 0.2,
+                        pointRadius: 1
+                    };
+                });
+
+                if(window.chartInstance) window.chartInstance.destroy();
+
+                window.chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Start', ...distinctDates.map(d => d.replace(" 2026", ""))],
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.01)' },
+                                ticks: { color: '#86868b', font: { size: 9 } }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.01)' },
+                                ticks: { color: '#86868b' }
+                            }
+                        },
+                        plugins: {
+                            legend: { labels: { color: '#fff' } }
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('Punkteverlauf konnte nicht gerendert werden:', err);
+            }
         }
 
         window.bonus = [
@@ -840,8 +930,9 @@
                 <div class="stat-box"><div class="stat-val">${myObj.m}</div><div class="stat-lbl">Spiele</div></div>
                 <div class="stat-box"><div class="stat-val">${myObj.b}</div><div class="stat-lbl">Bonus</div></div>
             `;
-            renderPointsProgressionChart();
             calculatePreTournamentAnalysis();
+            calculatePreTournamentAnalysis();
+            renderPointsProgressionChart();
         }
 
         function renderMatches() {
@@ -1062,6 +1153,18 @@
 
         function saveData() { localStorage.setItem('wm_data_final_all', JSON.stringify(window.matches)); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); if (window.cloudSaveEngine) window.cloudSaveEngine(window.matches, window.bonus); }
         function loadData() { let d = localStorage.getItem('wm_data_final_all'); let b = localStorage.getItem('wm_bonus_final_all'); if(d){let p=JSON.parse(d); window.matches.forEach(m=>{let f=p.find(x=>x.id==m.id); if(f){m.real=f.real; m.tips=f.tips;}}); } if(b){let pb=JSON.parse(b); window.bonus.forEach(bo=>{let fb=pb.find(x=>x.id==bo.id); if(fb){bo.adminRes=fb.adminRes; bo.tips=fb.tips;}}); } }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                try {
+                    calculatePreTournamentAnalysis();
+                    renderPointsProgressionChart();
+                } catch(e) {
+                    console.error('Dashboard-Nachrendern fehlgeschlagen:', e);
+                }
+            }, 500);
+        });
+
         setInterval(clockTick, 60000);
     </script>
 </body>
