@@ -280,74 +280,15 @@
         .nav-item.active .nav-icon { transform: scale(1.14); }
 
     
-        /* OPEN ACCESS LOGIN REPAIR */
-        #login-screen .passcode-dots-row,
-        #login-screen .keypad-matrix,
-        #login-screen .key-btn,
-        #login-screen .num-key,
-        #login-screen .delete-key {
-            display: none !important;
-            visibility: hidden !important;
-            pointer-events: none !important;
-        }
-
-        .open-access-login-card {
-            width: min(88vw, 430px);
-            margin: 0 auto;
-            padding: 28px 24px;
-            border-radius: 30px;
-            background: rgba(15,15,17,0.94);
-            border: 1px solid rgba(255,255,255,0.12);
-            box-shadow: 0 20px 70px rgba(0,0,0,0.5);
-        }
-
-        .open-access-title {
-            color: var(--text-main);
-            font-size: 1.7rem;
-            font-weight: 900;
-            text-align: center;
-            margin-bottom: 18px;
-        }
-
-        .open-access-select {
-            width: 100%;
-            padding: 15px 16px;
-            border-radius: 18px;
-            border: 1px solid rgba(255,204,0,0.35);
-            background: rgba(255,255,255,0.06);
-            color: var(--text-main);
-            font-size: 1rem;
-            font-weight: 800;
-            outline: none;
-            margin-bottom: 14px;
-        }
-
-        .open-access-button {
-            width: 100%;
-            padding: 16px 18px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,204,0,0.45);
-            background: linear-gradient(135deg, rgba(255,204,0,0.28), rgba(255,255,255,0.07));
-            color: var(--text-main);
-            font-size: 1.05rem;
-            font-weight: 950;
-            cursor: pointer;
-            letter-spacing: 0.02em;
-        }
-
-        .open-access-note {
-            margin-top: 14px;
-            color: var(--text-muted);
-            font-size: 0.78rem;
-            line-height: 1.35;
-            text-align: center;
-        }
-
-
-        /* FINAL OPEN ACCESS LOGIN FIX */
+        /* CLEAN OPEN ACCESS LOGIN */
         #login-screen {
+            position: fixed;
+            inset: 0;
+            width: 100%;
             min-height: 100vh;
             min-height: 100dvh;
+            background: #000000;
+            z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -355,26 +296,13 @@
             box-sizing: border-box;
         }
 
-        #login-screen .ios-lock-pad,
-        #login-screen .passcode-dots-row,
-        #login-screen .keypad-matrix,
-        #login-screen .keypad-btn,
-        #login-screen .key-btn,
-        #login-screen .num-key,
-        #login-screen .delete-key {
-            display: none !important;
-            visibility: hidden !important;
-            pointer-events: none !important;
-        }
-
         .open-access-login-card {
             width: min(88vw, 430px);
-            margin: 0 auto;
             padding: 28px 24px;
             border-radius: 30px;
-            background: rgba(15,15,17,0.94);
+            background: rgba(15,15,17,0.96);
             border: 1px solid rgba(255,255,255,0.12);
-            box-shadow: 0 20px 70px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 70px rgba(0,0,0,0.55);
         }
 
         .open-access-title {
@@ -390,7 +318,7 @@
             padding: 15px 16px;
             border-radius: 18px;
             border: 1px solid rgba(255,204,0,0.35);
-            background: rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.08);
             color: var(--text-main);
             font-size: 1rem;
             font-weight: 800;
@@ -460,7 +388,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: open-access-final-clean-v3 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: stable-open-access-v1 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -741,15 +669,18 @@
         function toggleThemeEngine() { toggleThemeEngineCode(); }
         function toggleThemeEngineCode() { document.documentElement.classList.toggle('light-mode'); AudioEngine.click(); }
 
-
-        // FINAL OPEN ACCESS MODE: keine PIN/Passwörter
-        function resetPasscodeAttemptFlow() {}
+        // OPEN ACCESS MODE: keine PIN/Passwörter mehr
+        function resetPasscodeAttemptFlow() {
+            passcodeBuffer = "";
+        }
 
         function pressPasscodeKey(num) {
             submitPasscodeVerificationChain();
         }
 
-        function clearPasscodeChain() {}
+        function clearPasscodeChain() {
+            passcodeBuffer = "";
+        }
 
         function updatePasscodeDotsGraphic() {}
 
@@ -780,15 +711,242 @@
             if (app) app.style.display = 'block';
             if (display) display.innerText = user;
 
-            if (typeof loadData === 'function') loadData();
-            if (typeof ensureAllPlayerData === 'function') ensureAllPlayerData();
-            if (typeof ensurePlayerVisibilityUI === 'function') ensurePlayerVisibilityUI();
+            loadData();
+            ensureAllPlayerData();
 
-            if (typeof updateUI === 'function') updateUI();
-            if (typeof renderMatches === 'function') renderMatches();
-            if (typeof renderBonus === 'function') renderBonus();
-            if (typeof renderTablesAndTree === 'function') renderTablesAndTree();
-            if (typeof calculatePreTournamentAnalysis === 'function') calculatePreTournamentAnalysis();
+            updateUI();
+            renderMatches();
+            renderBonus();
+            renderTablesAndTree();
+            calculatePreTournamentAnalysis();
+        }
+
+
+        // ATMOSPHERE SYSTEM RE-TRIGGERS
+        function morphAtmosphereColors(city) {
+            let themes = { 'LA': ['#ff2d55', '#ff9500'], 'NY': ['#007aff', '#5856d6'], 'VAN': ['#34c759', '#00c7be'], 'GER': ['#ff3b30', '#ffcc00'] };
+            let s = themes[city] || themes['LA'];
+            document.documentElement.style.setProperty('--atmosphere-1', s[0]);
+            document.documentElement.style.setProperty('--atmosphere-2', s[1]);
+        }
+
+        // SEGMENTED SEGMENT MULTI-TIER MAPPING LOGIC (INNOVATION 5)
+        function compileDayFiltersSegmentPills() {
+            let container = document.getElementById('day-filter-row');
+            let uniqueDates = [];
+
+            window.matches.forEach(m => {
+                const fullDate = m.date_str.split(" - ")[0];
+                if(!uniqueDates.includes(fullDate)) uniqueDates.push(fullDate);
+            });
+
+            uniqueDates.forEach((dateLabel, index) => {
+                const tournamentDay = index + 1;
+                container.innerHTML += `<div class="segment-pill" onclick="setDayFilter('${dateLabel}', this)">Tag ${tournamentDay}</div>`;
+            });
+        }
+
+        function setPhaseFilter(val, el) { resetRowActivePills('phase-filter-row', el); activePhaseFilter = val; renderMatches(); }
+        function setGroupFilter(val, el) { resetRowActivePills('group-filter-row', el); activeGroupFilter = val; renderMatches(); }
+        function setDayFilter(val, el) { resetRowActivePills('day-filter-row', el); activeDayFilter = val; renderMatches(); }
+
+        function resetRowActivePills(rowId, activeEl) {
+            AudioEngine.click();
+            document.getElementById(rowId).querySelectorAll('.segment-pill').forEach(p => p.classList.remove('active'));
+            activeEl.classList.add('active');
+        }
+
+        function nav(tabId, el) {
+            AudioEngine.woosh();
+            document.querySelectorAll('.content-section').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(tabId).className = "content-section active";
+            el.classList.add('active');
+            
+            if(tabId === 'tab-spiele') { morphAtmosphereColors('VAN'); renderMatches(); }
+            if(tabId === 'tab-bonus') { morphAtmosphereColors('NY'); renderBonus(); }
+            if(tabId === 'tab-tabellen') { morphAtmosphereColors('LA'); renderTablesAndTree(); }
+            if(tabId === 'tab-dash') { morphAtmosphereColors('GER'); updateUI(); calculatePreTournamentAnalysis(); }
+        }
+
+        // CORE RENDER ENGINES
+        function calculatePreTournamentAnalysis() {
+            const container = document.getElementById('analysis-container');
+            if (!container) return;
+
+            try {
+                let out = '';
+
+                window.players.forEach(p => {
+                    let totalGoals = 0;
+                    let homeWins = 0;
+                    let draws = 0;
+                    let awayWins = 0;
+                    let highScoringCount = 0;
+                    let completedTips = 0;
+
+                    window.matches.forEach(m => {
+                        const tip = m.tips && m.tips[p] ? m.tips[p] : null;
+
+                        if (tip && tip[0] !== null && tip[1] !== null) {
+                            const h = Number(tip[0]);
+                            const a = Number(tip[1]);
+
+                            if (Number.isFinite(h) && Number.isFinite(a)) {
+                                completedTips++;
+                                totalGoals += h + a;
+
+                                if (h > a) homeWins++;
+                                else if (h < a) awayWins++;
+                                else draws++;
+
+                                if ((h + a) >= 4) highScoringCount++;
+                            }
+                        }
+                    });
+
+                    const avgGoals = completedTips > 0 ? (totalGoals / completedTips).toFixed(2) : '0.00';
+
+                    out += `
+                        <div class="analysis-card">
+                            <div class="analysis-user-title">${p}</div>
+                            <div class="analysis-metric">Getippt: <span>${completedTips}/104</span></div>
+                            <div class="analysis-metric">Tore: <span>${totalGoals}</span></div>
+                            <div class="analysis-metric">Ø Tore: <span>${avgGoals}</span></div>
+                            <div class="analysis-metric">Heim (1): <span>${homeWins}</span></div>
+                            <div class="analysis-metric">Remis (X): <span>${draws}</span></div>
+                            <div class="analysis-metric">Gast (2): <span>${awayWins}</span></div>
+                            <div class="analysis-metric">Torreich (4+): <span>${highScoringCount}</span></div>
+                        </div>`;
+                });
+
+                container.innerHTML = out;
+            } catch (err) {
+                console.error('Analyse konnte nicht gerendert werden:', err);
+                container.innerHTML = `<div class="analysis-card">
+                    <div class="analysis-user-title">Analyse</div>
+                    <div class="analysis-metric">Status: <span>Fehler beim Laden</span></div>
+                </div>`;
+            }
+        }
+
+        function renderPointsProgressionChart() {
+            const canvas = document.getElementById('pointsChart');
+            if (!canvas) return;
+
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js ist noch nicht geladen. Punkteverlauf wird übersprungen.');
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            try {
+                let distinctDates = [];
+                window.matches.forEach(m => {
+                    let dayStr = m.date_str.split(" - ")[0];
+                    if(!distinctDates.includes(dayStr)) distinctDates.push(dayStr);
+                });
+
+                let datasets = window.players.map((p, idx) => {
+                    let colors = ['#ffcc00', '#0071e3', '#ff3b30', '#34c759', '#86868b', '#bf5af2'];
+                    let cumulativePoints = 0;
+                    let pointsHistory = [0];
+
+                    distinctDates.forEach(dStr => {
+                        window.matches.forEach(m => {
+                            if(m.date_str.startsWith(dStr) && m.real[0] !== null && m.real[1] !== null) {
+                                let rH = m.real[0];
+                                let rG = m.real[1];
+                                let rDiff = rH - rG;
+                                let tip = (m.tips && m.tips[p]) ? m.tips[p] : [null, null];
+                                let tH = tip[0];
+                                let tG = tip[1];
+
+                                if(tH !== null && tG !== null) {
+                                    if(tH === rH && tG === rG) cumulativePoints += 3;
+                                    else if(Math.sign(tH - tG) === Math.sign(rDiff)) cumulativePoints += 1;
+                                }
+                            }
+                        });
+
+                        pointsHistory.push(cumulativePoints);
+                    });
+
+                    return {
+                        label: p,
+                        data: pointsHistory,
+                        borderColor: colors[idx],
+                        backgroundColor: colors[idx] + '02',
+                        borderWidth: 3,
+                        tension: 0.2,
+                        pointRadius: 1
+                    };
+                });
+
+                if(window.chartInstance) window.chartInstance.destroy();
+
+                window.chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Start', ...distinctDates.map(d => d.replace(" 2026", ""))],
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.01)' },
+                                ticks: { color: '#86868b', font: { size: 9 } }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.01)' },
+                                ticks: { color: '#86868b' }
+                            }
+                        },
+                        plugins: {
+                            legend: { labels: { color: '#fff' } }
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('Punkteverlauf konnte nicht gerendert werden:', err);
+            }
+        }
+
+        window.bonus = [
+            { id: 'q1', q: 'Wer wird Weltmeister?', pts: 15, adminRes: '', tips: { Crisha: 'Frankreich', Eddy: 'Spanien', Nicola: 'Frankreich', Jana: '', Gemini: 'Spanien' } },
+            { id: 'q2', q: 'Die DFB-Reise', pts: 10, adminRes: '', tips: { Crisha: 'Halbfinale', Eddy: 'Viertelfinale', Nicola: 'Halbfinale', Jana: '', Gemini: 'Finale' } },
+            { id: 'q3', q: 'Bester DFB Torschütze', pts: 5, adminRes: '', tips: { Crisha: 'Wirtz', Eddy: 'Wirtz', Nicola: 'Wirtz', Jana: '', Gemini: 'Havertz' } },
+            { id: 'q4', q: 'Karten-König (DFB)', pts: 5, adminRes: '', tips: { Crisha: 'Rüdiger', Eddy: 'Raum', Nicola: 'Musiala', Jana: '', Gemini: 'Andrich' } },
+            { id: 'q5', q: 'Elfmeter-Krimi (DFB)?', pts: 5, adminRes: '', tips: { Crisha: 'Nein', Eddy: 'Nein', Nicola: 'Nein', Jana: '', Gemini: 'Ja' } },
+            { id: 'q6', q: 'Punkte DFB Vorrunde', pts: 5, adminRes: '', tips: { Crisha: '9', Eddy: '9', Nicola: '6', Jana: '', Gemini: '7' } },
+            { id: 'q7', q: 'Turnier Torschützenkönig', pts: 10, adminRes: '', tips: { Crisha: 'Kane', Eddy: 'Torres', Nicola: 'Mbappe', Jana: '', Gemini: 'Mbappe' } }
+        ];
+
+
+        function ensureAllPlayerData() {
+            if (!Array.isArray(window.players)) return;
+
+            if (Array.isArray(window.matches)) {
+                window.matches.forEach(m => {
+                    if (!m.tips || typeof m.tips !== 'object') m.tips = {};
+                    window.players.forEach(p => {
+                        if (!m.tips[p]) m.tips[p] = [null, null];
+                    });
+                });
+            }
+
+            if (Array.isArray(window.bonus)) {
+                window.bonus.forEach(b => {
+                    if (!b.tips || typeof b.tips !== 'object') b.tips = {};
+                    window.players.forEach(p => {
+                        if (typeof b.tips[p] === 'undefined') b.tips[p] = '';
+                    });
+                });
+            }
         }
 
 
