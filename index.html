@@ -487,6 +487,246 @@
             color: var(--ger-gold);
         }
 
+
+        .current-scroll-highlight {
+            outline: 2px solid rgba(255, 204, 0, 0.75);
+            box-shadow: 0 0 0 6px rgba(255, 204, 0, 0.08), 0 24px 60px rgba(255, 204, 0, 0.08);
+            transition: outline 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .current-match-jump {
+            border: 1px solid var(--border-subtle);
+            background: rgba(255,255,255,0.055);
+            color: var(--text-main);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 0.78rem;
+            font-weight: 900;
+            cursor: pointer;
+            margin: 0 4px 14px;
+        }
+
+        .current-match-jump:hover {
+            border-color: rgba(255,204,0,0.45);
+            color: var(--ger-gold);
+        }
+
+
+        /* PREMIUM BADGE SYSTEM */
+        .badge-hall-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .badge-hall-sub {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 750;
+            line-height: 1.35;
+            margin-top: -8px;
+        }
+
+        .badge-grid-premium {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+        }
+
+        .premium-badge-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 208px;
+            border-radius: 28px;
+            border: 1px solid rgba(255,255,255,0.13);
+            background:
+                radial-gradient(circle at 25% 18%, rgba(255,204,0,0.18), transparent 34%),
+                radial-gradient(circle at 82% 76%, rgba(255,255,255,0.075), transparent 36%),
+                linear-gradient(145deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025));
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.12),
+                0 22px 60px rgba(0,0,0,0.28);
+            padding: 18px;
+            isolation: isolate;
+        }
+
+        .premium-badge-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.12) 16%, transparent 32%),
+                radial-gradient(circle at 50% 0%, rgba(255,204,0,0.10), transparent 42%);
+            opacity: 0.72;
+            z-index: -1;
+        }
+
+        .premium-badge-card::after {
+            content: "";
+            position: absolute;
+            right: -42px;
+            top: -42px;
+            width: 128px;
+            height: 128px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,204,0,0.20);
+            background: rgba(255,204,0,0.035);
+        }
+
+        .badge-medal {
+            width: 74px;
+            height: 74px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.15rem;
+            margin-bottom: 14px;
+            background:
+                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.34), transparent 24%),
+                linear-gradient(145deg, rgba(255,204,0,0.33), rgba(255,255,255,0.065) 42%, rgba(0,0,0,0.22));
+            border: 1px solid rgba(255,204,0,0.38);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.22),
+                0 16px 38px rgba(255,204,0,0.10);
+        }
+
+        .badge-title-premium {
+            color: var(--text-main);
+            font-size: 1.04rem;
+            font-weight: 950;
+            letter-spacing: -0.025em;
+            line-height: 1.12;
+            margin-bottom: 8px;
+        }
+
+        .badge-winner-premium {
+            color: var(--ger-gold);
+            font-size: 1.22rem;
+            font-weight: 950;
+            letter-spacing: -0.035em;
+            margin-bottom: 6px;
+        }
+
+        .badge-detail-premium {
+            color: var(--text-muted);
+            font-size: 0.76rem;
+            font-weight: 760;
+            line-height: 1.34;
+            min-height: 38px;
+        }
+
+        .badge-ribbon {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 950;
+            color: rgba(255,255,255,0.90);
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.10);
+        }
+
+        .badge-ribbon.gold {
+            color: var(--ger-gold);
+            background: rgba(255,204,0,0.08);
+            border-color: rgba(255,204,0,0.25);
+        }
+
+        .prize-panel-premium {
+            position: relative;
+            overflow: hidden;
+            border-radius: 30px;
+            border: 1px solid rgba(255,204,0,0.22);
+            background:
+                radial-gradient(circle at 18% 22%, rgba(255,204,0,0.18), transparent 34%),
+                radial-gradient(circle at 85% 72%, rgba(255,59,48,0.08), transparent 30%),
+                linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025));
+            padding: 20px;
+            margin-top: 16px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 22px 70px rgba(0,0,0,0.30);
+        }
+
+        .prize-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .prize-title {
+            font-size: 1.28rem;
+            font-weight: 950;
+            letter-spacing: -0.035em;
+            color: var(--text-main);
+        }
+
+        .prize-status-pill {
+            border-radius: 999px;
+            padding: 6px 10px;
+            color: var(--ger-gold);
+            border: 1px solid rgba(255,204,0,0.28);
+            background: rgba(255,204,0,0.075);
+            font-size: 0.72rem;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .prize-options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .prize-option {
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(0,0,0,0.18);
+            padding: 14px;
+        }
+
+        .prize-option-icon {
+            font-size: 1.55rem;
+            margin-bottom: 8px;
+        }
+
+        .prize-option-title {
+            color: var(--text-main);
+            font-weight: 950;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+
+        .prize-option-text {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 760;
+            line-height: 1.35;
+        }
+
+        @media (max-width: 640px) {
+            .badge-grid-premium {
+                grid-template-columns: 1fr;
+            }
+
+            .premium-badge-card {
+                min-height: 178px;
+            }
+
+            .badge-medal {
+                width: 64px;
+                height: 64px;
+                border-radius: 21px;
+                font-size: 1.9rem;
+            }
+        }
+
 </style>
 </head>
 <body>
@@ -528,7 +768,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: advanced-stats-v1 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: badge-hall-v1 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -557,6 +797,41 @@
                 <div id="leaderboard-container"></div>
             </div>
             
+            <div class="card">
+                <div class="badge-hall-header">
+                    <div>
+                        <div class="card-title">🏅 Badge Hall of Fame</div>
+                        <div class="badge-hall-sub">Automatische Awards aus euren Tipps, Punkten und Spieltagen.</div>
+                    </div>
+                </div>
+                <div class="badge-grid-premium" id="badge-hall-container"></div>
+
+                <div class="prize-panel-premium">
+                    <div class="prize-title-row">
+                        <div class="prize-title">🏆 Siegerpreis</div>
+                        <div class="prize-status-pill">noch offen</div>
+                    </div>
+                    <div class="prize-options-grid">
+                        <div class="prize-option">
+                            <div class="prize-option-icon">🍕</div>
+                            <div class="prize-option-title">Final-Abend</div>
+                            <div class="prize-option-text">Die anderen zahlen dem Sieger Essen/Getränk beim Finale.</div>
+                        </div>
+                        <div class="prize-option">
+                            <div class="prize-option-icon">🏆</div>
+                            <div class="prize-option-title">Mini-Wanderpokal</div>
+                            <div class="prize-option-text">Kleiner Pokal mit Namen. Bleibt bis zum nächsten Turnier beim Gewinner.</div>
+                        </div>
+                        <div class="prize-option">
+                            <div class="prize-option-icon">🎁</div>
+                            <div class="prize-option-title">20€ Siegergutschein</div>
+                            <div class="prize-option-text">Kleiner Einsatz, aber genug, damit das Ranking richtig weh tut.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
 
             <div class="card">
                 <div class="card-title">Direktes Duell</div>
@@ -635,7 +910,7 @@
                     <!-- Day injection handles dynamically via startup compiler -->
                 </div>
             </div>
-            <div style="color:var(--text-muted);font-size:0.74rem;font-weight:800;margin:10px 4px 14px;">Aktuelle Spiele werden automatisch zuerst angezeigt.</div>
+            <button class="current-match-jump" onclick="scrollToCurrentMatch()">Zum aktuellen Spiel springen</button>
             <div class="matches-container-grid" id="matches-container"></div>
         </div>
 
@@ -936,7 +1211,7 @@
             if(tabId === 'tab-spiele') { morphAtmosphereColors('VAN'); renderMatches(); }
             if(tabId === 'tab-bonus') { morphAtmosphereColors('NY'); renderBonus(); }
             if(tabId === 'tab-tabellen') { morphAtmosphereColors('LA'); renderTablesAndTree(); }
-            if(tabId === 'tab-dash') { morphAtmosphereColors('GER'); updateUI(); calculatePreTournamentAnalysis(); renderDuelMode(); renderMomentumStats(); }
+            if(tabId === 'tab-dash') { morphAtmosphereColors('GER'); updateUI(); calculatePreTournamentAnalysis(); renderBadgeHall(); renderDuelMode(); renderMomentumStats(); }
         }
 
         // CORE RENDER ENGINES
@@ -1420,6 +1695,229 @@
         }
 
 
+
+        function getBadgePlayers() {
+            return (window.players || []).filter(p => p !== 'Gemini');
+        }
+
+        function getPlayerTotalScoresForBadges() {
+            let scores = {};
+            getBadgePlayers().forEach(p => scores[p] = { total: 0, match: 0, bonus: 0 });
+
+            window.matches.forEach(m => {
+                if (!m.real || m.real[0] === null || m.real[1] === null) return;
+
+                getBadgePlayers().forEach(p => {
+                    const tip = (m.tips && m.tips[p]) ? m.tips[p] : [null, null];
+                    if (tip[0] === null || tip[1] === null) return;
+
+                    const pts = calculateMatchPoints(tip[0], tip[1], m.real[0], m.real[1]);
+                    scores[p].match += pts;
+                    scores[p].total += pts;
+                });
+            });
+
+            if (Array.isArray(window.bonus)) {
+                window.bonus.forEach(b => {
+                    if (!b.adminRes || !String(b.adminRes).trim()) return;
+                    getBadgePlayers().forEach(p => {
+                        const val = b.tips && typeof b.tips[p] !== 'undefined' ? b.tips[p] : '';
+                        if (String(val).trim().toLowerCase() === String(b.adminRes).trim().toLowerCase()) {
+                            scores[p].bonus += b.pts || 0;
+                            scores[p].total += b.pts || 0;
+                        }
+                    });
+                });
+            }
+
+            return scores;
+        }
+
+        function getBestSingleMatchdayBadge() {
+            const dayScores = {};
+            const completed = getCompletedMatchesChronological();
+
+            completed.forEach(m => {
+                const day = m.date_str ? m.date_str.split(' - ')[0] : new Date(m.date).toLocaleDateString('de-DE');
+                if (!dayScores[day]) {
+                    dayScores[day] = {};
+                    getBadgePlayers().forEach(p => dayScores[day][p] = 0);
+                }
+
+                getBadgePlayers().forEach(p => {
+                    const tip = (m.tips && m.tips[p]) ? m.tips[p] : [null, null];
+                    dayScores[day][p] += calculateMatchPoints(tip[0], tip[1], m.real[0], m.real[1]);
+                });
+            });
+
+            let best = { player: 'Noch offen', value: null, detail: 'Sobald Ergebnisse eingetragen sind, wird der stärkste Spieltag gekürt.' };
+
+            Object.entries(dayScores).forEach(([day, row]) => {
+                Object.entries(row).forEach(([player, pts]) => {
+                    if (best.value === null || pts > best.value) {
+                        best = { player, value: pts, detail: `${pts} Punkte am ${day}` };
+                    }
+                });
+            });
+
+            return best;
+        }
+
+        function getMostExactBadge() {
+            const completed = getCompletedMatchesChronological();
+            const stats = {};
+            getBadgePlayers().forEach(p => stats[p] = 0);
+
+            completed.forEach(m => {
+                getBadgePlayers().forEach(p => {
+                    const tip = (m.tips && m.tips[p]) ? m.tips[p] : [null, null];
+                    if (tip[0] === m.real[0] && tip[1] === m.real[1]) stats[p]++;
+                });
+            });
+
+            let winner = 'Noch offen';
+            let value = -1;
+            Object.entries(stats).forEach(([p, v]) => {
+                if (v > value) { winner = p; value = v; }
+            });
+
+            if (completed.length === 0) return { player: 'Noch offen', value: null, detail: 'Noch keine gewerteten Spiele.' };
+            return { player: winner, value, detail: `${value} exakte Treffer` };
+        }
+
+        function getBiggestComebackBadge() {
+            const completed = getCompletedMatchesChronological();
+            if (completed.length === 0) {
+                return { player: 'Noch offen', value: null, detail: 'Noch keine Formdaten vorhanden.' };
+            }
+
+            const n = Math.min(10, completed.length);
+            const currentSlice = completed.slice(-n);
+            const previousSlice = completed.slice(Math.max(0, completed.length - (2 * n)), Math.max(0, completed.length - n));
+
+            let best = { player: 'Noch offen', value: null, detail: 'Noch nicht genug Vergleichsdaten.' };
+
+            getBadgePlayers().forEach(p => {
+                const current = getPlayerMatchStats(p, currentSlice).points;
+                const previous = previousSlice.length ? getPlayerMatchStats(p, previousSlice).points : 0;
+                const delta = current - previous;
+
+                if (best.value === null || delta > best.value) {
+                    best = { player: p, value: delta, detail: `${delta >= 0 ? '+' : ''}${delta} Punkte Momentum` };
+                }
+            });
+
+            return best;
+        }
+
+        function getBravestTipBadge() {
+            const stats = {};
+            getBadgePlayers().forEach(p => stats[p] = { risk: 0, tips: 0, high: 0, draw: 0, away: 0 });
+
+            window.matches.forEach(m => {
+                getBadgePlayers().forEach(p => {
+                    const tip = (m.tips && m.tips[p]) ? m.tips[p] : [null, null];
+                    if (tip[0] === null || tip[1] === null) return;
+
+                    const total = Number(tip[0]) + Number(tip[1]);
+                    const diff = Number(tip[0]) - Number(tip[1]);
+
+                    stats[p].tips++;
+                    if (total >= 4) { stats[p].risk += 2; stats[p].high++; }
+                    if (diff === 0) { stats[p].risk += 1.5; stats[p].draw++; }
+                    if (diff < 0) { stats[p].risk += 1; stats[p].away++; }
+                    if (Math.abs(diff) >= 3) stats[p].risk += 1;
+                });
+            });
+
+            let best = { player: 'Noch offen', value: null, detail: 'Noch keine Tipps vorhanden.' };
+
+            Object.entries(stats).forEach(([p, s]) => {
+                if (s.tips === 0) return;
+                const score = s.risk / s.tips;
+                if (best.value === null || score > best.value) {
+                    best = {
+                        player: p,
+                        value: score,
+                        detail: `Risiko-Score ${score.toFixed(2)} · ${s.high} torreiche Tipps`
+                    };
+                }
+            });
+
+            return best;
+        }
+
+        function getBitterZeroDayBadge() {
+            const completed = getCompletedMatchesChronological();
+            const dayZeros = {};
+
+            completed.forEach(m => {
+                const day = m.date_str ? m.date_str.split(' - ')[0] : new Date(m.date).toLocaleDateString('de-DE');
+                if (!dayZeros[day]) {
+                    dayZeros[day] = {};
+                    getBadgePlayers().forEach(p => dayZeros[day][p] = 0);
+                }
+
+                getBadgePlayers().forEach(p => {
+                    const tip = (m.tips && m.tips[p]) ? m.tips[p] : [null, null];
+                    if (tip[0] === null || tip[1] === null) return;
+
+                    const pts = calculateMatchPoints(tip[0], tip[1], m.real[0], m.real[1]);
+                    if (pts === 0) dayZeros[day][p]++;
+                });
+            });
+
+            let worst = { player: 'Noch offen', value: null, detail: 'Noch kein bitterer Spieltag.' };
+
+            Object.entries(dayZeros).forEach(([day, row]) => {
+                Object.entries(row).forEach(([player, zeros]) => {
+                    if (worst.value === null || zeros > worst.value) {
+                        worst = { player, value: zeros, detail: `${zeros} Nuller am ${day}` };
+                    }
+                });
+            });
+
+            return worst;
+        }
+
+        function getChampionBadge() {
+            const scores = getPlayerTotalScoresForBadges();
+            let champ = { player: 'Noch offen', value: null, detail: 'Noch keine Punkte vergeben.' };
+
+            Object.entries(scores).forEach(([p, s]) => {
+                if (champ.value === null || s.total > champ.value) {
+                    champ = { player: p, value: s.total, detail: `${s.total} Gesamtpunkte aktuell` };
+                }
+            });
+
+            return champ;
+        }
+
+        function renderBadgeHall() {
+            const container = document.getElementById('badge-hall-container');
+            if (!container) return;
+
+            const badges = [
+                { icon: '👑', title: 'Bester Spieltag', ribbon: 'Goldmoment', data: getBestSingleMatchdayBadge() },
+                { icon: '🎯', title: 'Meiste exakte Treffer', ribbon: 'Präzision', data: getMostExactBadge() },
+                { icon: '🚀', title: 'Größter Aufholer', ribbon: 'Momentum', data: getBiggestComebackBadge() },
+                { icon: '⚡', title: 'Mutigster Tipp', ribbon: 'Risiko', data: getBravestTipBadge() },
+                { icon: '💔', title: 'Bitterster 0-Punkte-Spieltag', ribbon: 'Schmerzhaft', data: getBitterZeroDayBadge() },
+                { icon: '🏆', title: 'Champion', ribbon: 'Aktueller Leader', data: getChampionBadge() }
+            ];
+
+            container.innerHTML = badges.map(b => `
+                <div class="premium-badge-card">
+                    <div class="badge-medal">${b.icon}</div>
+                    <div class="badge-title-premium">${b.title}</div>
+                    <div class="badge-winner-premium">${b.data.player}</div>
+                    <div class="badge-detail-premium">${b.data.detail}</div>
+                    <div class="badge-ribbon ${b.title === 'Champion' ? 'gold' : ''}">${b.ribbon}</div>
+                </div>
+            `).join('');
+        }
+
+
         function updateUI() {
             ensureAllPlayerData();
             ensurePlayerVisibilityUI();
@@ -1456,6 +1954,7 @@
             `;
             calculatePreTournamentAnalysis();
             calculatePreTournamentAnalysis();
+            renderBadgeHall();
             renderDuelMode();
             renderMomentumStats();
             renderPointsProgressionChart();
@@ -1538,6 +2037,50 @@
         }
 
 
+
+        function getCurrentMatchForAutoScroll() {
+            const now = new Date();
+
+            if (!Array.isArray(window.matches) || window.matches.length === 0) return null;
+
+            // 1) Laufendes Spiel: Start bis ca. 3 Stunden danach
+            const liveWindow = window.matches
+                .filter(m => {
+                    const start = new Date(m.date);
+                    const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
+                    return now >= start && now <= end;
+                })
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (liveWindow.length > 0) return liveWindow[0];
+
+            // 2) Wenn gerade kein Spiel läuft: nächstes kommendes Spiel
+            const upcoming = window.matches
+                .filter(m => new Date(m.date) > now)
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (upcoming.length > 0) return upcoming[0];
+
+            // 3) Wenn alles vorbei ist: letztes Spiel
+            const past = [...window.matches].sort((a, b) => new Date(b.date) - new Date(a.date));
+            return past[0] || null;
+        }
+
+        function scrollToCurrentMatch() {
+            const match = getCurrentMatchForAutoScroll();
+            if (!match) return;
+
+            const target = document.getElementById(`match-card-${match.id}`);
+            if (!target) return;
+
+            setTimeout(() => {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                target.classList.add('current-scroll-highlight');
+                setTimeout(() => target.classList.remove('current-scroll-highlight'), 1800);
+            }, 250);
+        }
+
+
         function renderMatches() {
             ensureAllPlayerData();
             let c = document.getElementById('matches-container'); html = '';
@@ -1545,7 +2088,7 @@
             let groupGames = window.matches.filter(m => m.r.includes('Gruppe'));
             const groupStageClosed = groupGames.every(m => m.real[0] !== null && m.real[1] !== null);
             
-            getOrderedMatchesForDisplay().forEach((m, index) => {
+            window.matches.forEach((m, index) => {
                 let isGer = (m.h === 'Deutschland' || m.a === 'Deutschland');
                 let isLocked = now >= new Date(m.date); let isKo = m.id >= 73;
                 
