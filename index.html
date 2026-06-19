@@ -1102,6 +1102,53 @@
             margin-top: 5px;
         }
 
+
+        /* RANKING DELTA VISIBILITY FIX */
+        .leader-meta-line {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 5px 0 6px;
+        }
+
+        .rank-delta-pill,
+        .last-points-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-size: 0.67rem;
+            font-weight: 950;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        .last-points-pill {
+            color: var(--ger-gold);
+            border: 1px solid rgba(255,204,0,0.24);
+            background: rgba(255,204,0,0.075);
+        }
+
+        .rank-delta-pill.same {
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.055);
+        }
+
+        .rank-delta-pill.up {
+            color: #34c759;
+            border: 1px solid rgba(52,199,89,0.30);
+            background: rgba(52,199,89,0.075);
+        }
+
+        .rank-delta-pill.down {
+            color: #ff453a;
+            border: 1px solid rgba(255,69,58,0.30);
+            background: rgba(255,69,58,0.075);
+        }
+
 </style>
 </head>
 <body>
@@ -1143,7 +1190,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: prize-edit-ranking-delta-v1 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: compact-rank-delta-v3 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -1168,7 +1215,7 @@
         <!-- DASHBOARD CONTAINER SECTIONS -->
         <div id="tab-dash" class="content-section active">
             <div class="card">
-                <div class="card-title">Live-Ranking</div><div style="color:var(--text-muted);font-size:0.76rem;font-weight:800;margin-top:-8px;margin-bottom:12px;">Letztes Spiel: Punkte- und Rangänderung</div>
+                <div class="card-title">Live-Ranking</div><div style="color:var(--text-muted);font-size:0.76rem;font-weight:800;margin-top:-8px;margin-bottom:12px;">Letzte Änderung: Punkte + Rang</div>
                 <div id="leaderboard-container"></div>
             </div>
             
@@ -1265,7 +1312,6 @@
                     <!-- Day injection handles dynamically via startup compiler -->
                 </div>
             </div>
-            <button class="current-match-jump" onclick="scrollToCurrentMatch()">Zum aktuellen Spiel springen</button>
             <div class="matches-container-grid" id="matches-container"></div>
         </div>
 
@@ -1565,7 +1611,7 @@
             document.getElementById(tabId).className = "content-section active";
             el.classList.add('active');
             
-            if(tabId === 'tab-spiele') { morphAtmosphereColors('VAN'); renderMatches(); }
+            if(tabId === 'tab-spiele') { morphAtmosphereColors('VAN'); renderMatches(); scrollToCurrentMatch(); }
             if(tabId === 'tab-bonus') { morphAtmosphereColors('NY'); renderBonus(); }
             if(tabId === 'tab-tabellen') { morphAtmosphereColors('LA'); renderTablesAndTree(); }
             if(tabId === 'tab-dash') { morphAtmosphereColors('GER'); updateUI(); calculatePreTournamentAnalysis(); renderBadgeHall(); renderDuelMode(); renderMomentumStats(); }
@@ -2675,6 +2721,7 @@
 
 
 
+
         function getCompletedMatchesForRankingDelta() {
             return [...window.matches]
                 .filter(m => m.real && m.real[0] !== null && m.real[1] !== null)
@@ -2694,15 +2741,12 @@
 
                 window.players.forEach(p => {
                     const tip = (m.tips && m.tips[p]) ? m.tips[p] : [null, null];
-                    const tH = tip[0];
-                    const tG = tip[1];
-
-                    scores[p].m += calculateMatchPoints(tH, tG, rH, rG);
+                    scores[p].m += calculateMatchPoints(tip[0], tip[1], rH, rG);
                 });
             });
 
             window.bonus.forEach(b => {
-                if (b.adminRes && String(b.adminRes).trim()) {
+                if (b.adminRes && String(b.adminRes).trim() !== '') {
                     window.players.forEach(p => {
                         const val = b.tips && typeof b.tips[p] !== 'undefined' ? b.tips[p] : '';
                         if (String(val).trim().toLowerCase() === String(b.adminRes).trim().toLowerCase()) {
@@ -2754,7 +2798,8 @@
 
                 const prev = previousRanks[p] || currentRanks[p] || 0;
                 const cur = currentRanks[p] || prev;
-                // positive = improved/up
+
+                // positiv = im Ranking aufgestiegen, negativ = abgestiegen
                 rankDelta[p] = prev - cur;
             });
 
@@ -2763,22 +2808,21 @@
 
         function renderRankingDeltaPills(playerName, deltaMeta) {
             if (!deltaMeta || !deltaMeta.lastMatch) {
-                return `<span class="last-points-pill">+0 seit letztem Spiel</span>`;
+                return `<span class="last-points-pill">+0</span><span class="rank-delta-pill same">→</span>`;
             }
 
             const pts = deltaMeta.lastPoints[playerName] || 0;
             const move = deltaMeta.rankDelta[playerName] || 0;
 
-            let moveHtml = `<span class="rank-delta-pill same">→ Platz gleich</span>`;
+            let moveHtml = `<span class="rank-delta-pill same">→</span>`;
 
             if (move > 0) {
-                moveHtml = `<span class="rank-delta-pill up">▲ ${move} Platz${move === 1 ? '' : 'e'}</span>`;
+                moveHtml = `<span class="rank-delta-pill up">▲ ${move}</span>`;
             } else if (move < 0) {
-                const down = Math.abs(move);
-                moveHtml = `<span class="rank-delta-pill down">▼ ${down} Platz${down === 1 ? '' : 'e'}</span>`;
+                moveHtml = `<span class="rank-delta-pill down">▼ ${Math.abs(move)}</span>`;
             }
 
-            return `<span class="last-points-pill">+${pts} letztes Spiel</span>${moveHtml}`;
+            return `<span class="last-points-pill">+${pts}</span>${moveHtml}`;
         }
 
 
@@ -2802,10 +2846,11 @@
                     window.players.forEach(p => { if(b.tips[p] && b.tips[p].toLowerCase() === b.adminRes.trim().toLowerCase()) scores[p].b += b.pts; });
                 }
             });
-            let arr = window.players.map(p => ({ name: p, t: scores[p].m + scores[p].b, m: scores[p].m, b: scores[p].b })).sort((a,b) => b.t - a.t);
+            let arr = window.players.map(p => ({ name: p, t: scores[p].m + scores[p].b, m: scores[p].m, b: scores[p].b })).sort((a,b) => b.t - a.t || b.m - a.m || a.name.localeCompare(b.name));
+            const rankingDeltaMeta = getRankingDeltaMeta();
             let html = ''; let maxPts = Math.max(...arr.map(x => x.t), 15);
             arr.forEach((p, idx) => {
-                html += `<div class="rank-row"><div class="rank-num ${idx==0?'rank-1':''}">${idx+1}</div><div class="rank-info"><div class="rank-name">${p.name}</div><div class="bar-bg"><div class="bar-fill" style="width: ${(p.t/maxPts)*100}%"></div></div></div><div class="rank-pts">${p.t}</div></div>`;
+                html += `<div class="rank-row"><div class="rank-num ${idx==0?'rank-1':''}">${idx+1}</div><div class="rank-info"><div class="rank-name">${p.name}</div><div class="leader-meta-line">${renderRankingDeltaPills(p.name, rankingDeltaMeta)}</div><div class="bar-bg"><div class="bar-fill" style="width: ${(p.t/maxPts)*100}%"></div></div></div><div class="rank-pts">${p.t}</div></div>`;
             });
             document.getElementById('leaderboard-container').innerHTML = html;
             let myObj = arr.find(x => x.name === window.currentUser) || {t:0, m:0, b:0};
@@ -2925,7 +2970,7 @@
 
             if (upcoming.length > 0) return upcoming[0];
 
-            // 3) Wenn alles vorbei ist: letztes Spiel
+            // 3) Wenn alles vorbei ist:
             const past = [...window.matches].sort((a, b) => new Date(b.date) - new Date(a.date));
             return past[0] || null;
         }
@@ -2934,14 +2979,14 @@
             const match = getCurrentMatchForAutoScroll();
             if (!match) return;
 
-            const target = document.getElementById(`match-card-${match.id}`);
-            if (!target) return;
-
             setTimeout(() => {
+                const target = document.getElementById(`match-card-${match.id}`);
+                if (!target) return;
+
                 target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 target.classList.add('current-scroll-highlight');
                 setTimeout(() => target.classList.remove('current-scroll-highlight'), 1800);
-            }, 250);
+            }, 450);
         }
 
 
@@ -2996,7 +3041,7 @@
                 });
 
                 html += `
-                    <div class="match-card ${isGer?'match-ger':''}" style="animation-delay: ${Math.min(index * 25, 400)}ms">
+                    <div class="match-card ${isGer?'match-ger':''}" id="match-card-${m.id}" data-match-id="${m.id}" style="animation-delay: ${Math.min(index * 25, 400)}ms">
                         <div class="match-meta"><span>Spiel ${m.id} • ${m.r}${getCurrentMatchBadge(m, now)}</span><span id="timer-${m.id}"></span></div>
                         <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">🏟️ ${m.stadium || 'Stadion'}</div>
                         <div style="font-size:0.72rem; color:var(--ger-gold); margin-bottom:10px;">🕒 ${m.date_str} Uhr (MESZ)</div>
