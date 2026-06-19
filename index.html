@@ -347,6 +347,146 @@
             text-align: center;
         }
 
+
+        /* ADVANCED STATS FEATURES */
+        .advanced-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        .feature-control-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 12px 0 14px;
+        }
+
+        .feature-select {
+            flex: 1;
+            min-width: 140px;
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            background: rgba(255,255,255,0.06);
+            color: var(--text-main);
+            padding: 12px 14px;
+            font-weight: 800;
+            outline: none;
+        }
+
+        .duel-summary-card,
+        .momentum-card,
+        .point-explain-card {
+            border: 1px solid var(--border-subtle);
+            background: rgba(255,255,255,0.045);
+            border-radius: 20px;
+            padding: 14px;
+        }
+
+        .duel-title-line,
+        .momentum-title-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .duel-player-name,
+        .momentum-player-name {
+            font-weight: 950;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .duel-badge,
+        .momentum-badge {
+            font-size: 0.72rem;
+            font-weight: 900;
+            color: var(--ger-gold);
+            border: 1px solid rgba(255,204,0,0.28);
+            background: rgba(255,204,0,0.08);
+            border-radius: 999px;
+            padding: 4px 8px;
+            white-space: nowrap;
+        }
+
+        .duel-scoreline {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 12px;
+            margin: 8px 0 12px;
+        }
+
+        .duel-score-big {
+            font-size: 2rem;
+            font-weight: 950;
+            color: var(--text-main);
+            letter-spacing: -0.04em;
+        }
+
+        .feature-metric-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 7px 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 750;
+        }
+
+        .feature-metric-row span:last-child {
+            color: var(--text-main);
+            font-weight: 900;
+            text-align: right;
+        }
+
+        .momentum-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.07);
+            color: var(--text-main);
+            font-weight: 950;
+            margin-right: 8px;
+        }
+
+        .momentum-delta-positive {
+            color: #34c759 !important;
+        }
+
+        .momentum-delta-neutral {
+            color: var(--text-muted) !important;
+        }
+
+        .tip-row.with-explain {
+            align-items: flex-start;
+        }
+
+        .tip-score-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+        }
+
+        .tip-points-explain {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .tip-points-explain.good {
+            color: var(--ger-gold);
+        }
+
 </style>
 </head>
 <body>
@@ -388,7 +528,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: scoring-3-2-1-v1 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: advanced-stats-v1 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -417,6 +557,35 @@
                 <div id="leaderboard-container"></div>
             </div>
             
+
+            <div class="card">
+                <div class="card-title">Direktes Duell</div>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 12px;">
+                    Spieler direkt vergleichen: Punkte, exakte Treffer, Differenzen und gewonnene Spieltage.
+                </p>
+                <div class="feature-control-row">
+                    <select class="feature-select" id="duel-player-a" onchange="renderDuelMode()"></select>
+                    <select class="feature-select" id="duel-player-b" onchange="renderDuelMode()"></select>
+                </div>
+                <div id="duel-container"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Formkurve & Aufholer</div>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 12px;">
+                    Zeigt, wer sich im gewählten Zeitraum gerade am stärksten verbessert.
+                </p>
+                <div class="feature-control-row">
+                    <select class="feature-select" id="momentum-window" onchange="renderMomentumStats()">
+                        <option value="5">Letzte 5 gewertete Spiele</option>
+                        <option value="10" selected>Letzte 10 gewertete Spiele</option>
+                        <option value="20">Letzte 20 gewertete Spiele</option>
+                        <option value="ALL">Gesamtes Turnier bisher</option>
+                    </select>
+                </div>
+                <div id="momentum-container"></div>
+            </div>
+
             <div class="card">
                 <div class="card-title">📈 Punkteverlauf nach Turniertagen</div>
                 <div style="position: relative; width: 100%; height: 320px;">
@@ -466,6 +635,7 @@
                     <!-- Day injection handles dynamically via startup compiler -->
                 </div>
             </div>
+            <div style="color:var(--text-muted);font-size:0.74rem;font-weight:800;margin:10px 4px 14px;">Aktuelle Spiele werden automatisch zuerst angezeigt.</div>
             <div class="matches-container-grid" id="matches-container"></div>
         </div>
 
@@ -766,7 +936,7 @@
             if(tabId === 'tab-spiele') { morphAtmosphereColors('VAN'); renderMatches(); }
             if(tabId === 'tab-bonus') { morphAtmosphereColors('NY'); renderBonus(); }
             if(tabId === 'tab-tabellen') { morphAtmosphereColors('LA'); renderTablesAndTree(); }
-            if(tabId === 'tab-dash') { morphAtmosphereColors('GER'); updateUI(); calculatePreTournamentAnalysis(); }
+            if(tabId === 'tab-dash') { morphAtmosphereColors('GER'); updateUI(); calculatePreTournamentAnalysis(); renderDuelMode(); renderMomentumStats(); }
         }
 
         // CORE RENDER ENGINES
@@ -1011,8 +1181,8 @@
             const tipDiff = tH - tG;
             const realDiff = rH - rG;
 
-            // 3 Punkte: exaktes Ergebnis
-            if (tH === rH && tG === rG) return 3;
+            // 4 Punkte: exaktes Ergebnis
+            if (tH === rH && tG === rG) return 4;
 
             // 2 Punkte: richtige Tordifferenz, aber nicht exakt
             if (tipDiff === realDiff) return 2;
@@ -1022,6 +1192,233 @@
 
             return 0;
         }
+
+
+        function getHumanTipPlayers() {
+            return (window.players || []).filter(p => p !== 'Gemini');
+        }
+
+        function getCompletedMatchesChronological() {
+            return [...window.matches]
+                .filter(m => m.real && m.real[0] !== null && m.real[1] !== null)
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+
+        function getPointExplanation(tip, match) {
+            if (!match || !match.real || match.real[0] === null || match.real[1] === null) {
+                return { points: null, label: 'noch offen', cls: '' };
+            }
+
+            if (!tip || tip[0] === null || tip[1] === null) {
+                return { points: 0, label: 'kein Tipp', cls: '' };
+            }
+
+            const points = calculateMatchPoints(tip[0], tip[1], match.real[0], match.real[1]);
+
+            if (points === 4) return { points, label: '4 Pkt · exakt', cls: 'good' };
+            if (points === 2) return { points, label: '2 Pkt · Differenz', cls: 'good' };
+            if (points === 1) return { points, label: '1 Pkt · Tendenz', cls: 'good' };
+            return { points: 0, label: '0 Pkt', cls: '' };
+        }
+
+        function getPlayerMatchStats(player, matchList) {
+            let stats = {
+                points: 0,
+                exact: 0,
+                diff: 0,
+                tendency: 0,
+                zero: 0,
+                tips: 0
+            };
+
+            matchList.forEach(m => {
+                const tip = (m.tips && m.tips[player]) ? m.tips[player] : [null, null];
+                if (tip[0] === null || tip[1] === null) return;
+
+                stats.tips++;
+                const pts = calculateMatchPoints(tip[0], tip[1], m.real[0], m.real[1]);
+                stats.points += pts;
+
+                if (pts === 4) stats.exact++;
+                else if (pts === 2) stats.diff++;
+                else if (pts === 1) stats.tendency++;
+                else stats.zero++;
+            });
+
+            return stats;
+        }
+
+        function setupAdvancedStatSelects() {
+            const players = getHumanTipPlayers();
+            const a = document.getElementById('duel-player-a');
+            const b = document.getElementById('duel-player-b');
+
+            if (!a || !b) return;
+
+            const oldA = a.value || 'Crisha';
+            const oldB = b.value || (players.find(p => p !== oldA) || players[1] || players[0]);
+
+            a.innerHTML = '';
+            b.innerHTML = '';
+
+            players.forEach(p => {
+                a.innerHTML += `<option value="${p}">${p}</option>`;
+                b.innerHTML += `<option value="${p}">${p}</option>`;
+            });
+
+            a.value = players.includes(oldA) ? oldA : (players[0] || '');
+            b.value = players.includes(oldB) ? oldB : (players.find(p => p !== a.value) || players[0] || '');
+
+            if (a.value === b.value && players.length > 1) {
+                b.value = players.find(p => p !== a.value);
+            }
+        }
+
+        function renderDuelMode() {
+            const container = document.getElementById('duel-container');
+            if (!container) return;
+
+            setupAdvancedStatSelects();
+
+            const aEl = document.getElementById('duel-player-a');
+            const bEl = document.getElementById('duel-player-b');
+            const playerA = aEl ? aEl.value : 'Crisha';
+            const playerB = bEl ? bEl.value : 'Eddy';
+
+            const completed = getCompletedMatchesChronological();
+
+            if (!playerA || !playerB || playerA === playerB) {
+                container.innerHTML = `<div class="duel-summary-card">Bitte zwei unterschiedliche Spieler auswählen.</div>`;
+                return;
+            }
+
+            if (completed.length === 0) {
+                container.innerHTML = `<div class="duel-summary-card">Noch keine gewerteten Spiele vorhanden.</div>`;
+                return;
+            }
+
+            const aStats = getPlayerMatchStats(playerA, completed);
+            const bStats = getPlayerMatchStats(playerB, completed);
+
+            let aWins = 0;
+            let bWins = 0;
+            let draws = 0;
+
+            completed.forEach(m => {
+                const tipA = (m.tips && m.tips[playerA]) ? m.tips[playerA] : [null, null];
+                const tipB = (m.tips && m.tips[playerB]) ? m.tips[playerB] : [null, null];
+
+                const ptsA = calculateMatchPoints(tipA[0], tipA[1], m.real[0], m.real[1]);
+                const ptsB = calculateMatchPoints(tipB[0], tipB[1], m.real[0], m.real[1]);
+
+                if (ptsA > ptsB) aWins++;
+                else if (ptsB > ptsA) bWins++;
+                else draws++;
+            });
+
+            let leader = 'Unentschieden';
+            if (aStats.points > bStats.points) leader = playerA + ' führt';
+            if (bStats.points > aStats.points) leader = playerB + ' führt';
+
+            container.innerHTML = `
+                <div class="duel-summary-card">
+                    <div class="duel-title-line">
+                        <div class="duel-player-name">${playerA} vs. ${playerB}</div>
+                        <div class="duel-badge">${leader}</div>
+                    </div>
+
+                    <div class="duel-scoreline">
+                        <div class="duel-score-big">${aStats.points}</div>
+                        <div style="color:var(--text-muted);font-weight:900;">:</div>
+                        <div class="duel-score-big">${bStats.points}</div>
+                    </div>
+
+                    <div class="advanced-card-grid">
+                        <div class="point-explain-card">
+                            <div class="duel-player-name">${playerA}</div>
+                            <div class="feature-metric-row"><span>Gewonnene Spiele</span><span>${aWins}</span></div>
+                            <div class="feature-metric-row"><span>Exakte Treffer</span><span>${aStats.exact}</span></div>
+                            <div class="feature-metric-row"><span>Richtige Differenz</span><span>${aStats.diff}</span></div>
+                            <div class="feature-metric-row"><span>Tendenz</span><span>${aStats.tendency}</span></div>
+                        </div>
+
+                        <div class="point-explain-card">
+                            <div class="duel-player-name">${playerB}</div>
+                            <div class="feature-metric-row"><span>Gewonnene Spiele</span><span>${bWins}</span></div>
+                            <div class="feature-metric-row"><span>Exakte Treffer</span><span>${bStats.exact}</span></div>
+                            <div class="feature-metric-row"><span>Richtige Differenz</span><span>${bStats.diff}</span></div>
+                            <div class="feature-metric-row"><span>Tendenz</span><span>${bStats.tendency}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="feature-metric-row"><span>Gleichstand pro Spiel</span><span>${draws}</span></div>
+                    <div class="feature-metric-row"><span>Gewertete Spiele</span><span>${completed.length}</span></div>
+                </div>`;
+        }
+
+        function renderMomentumStats() {
+            const container = document.getElementById('momentum-container');
+            if (!container) return;
+
+            const completed = getCompletedMatchesChronological();
+            const players = getHumanTipPlayers();
+
+            if (completed.length === 0) {
+                container.innerHTML = `<div class="momentum-card">Noch keine gewerteten Spiele vorhanden.</div>`;
+                return;
+            }
+
+            const selector = document.getElementById('momentum-window');
+            const value = selector ? selector.value : '10';
+
+            const n = value === 'ALL' ? completed.length : Number(value);
+            const currentSlice = completed.slice(-n);
+            const previousSlice = completed.slice(Math.max(0, completed.length - (2 * n)), Math.max(0, completed.length - n));
+
+            const rows = players.map(p => {
+                const current = getPlayerMatchStats(p, currentSlice);
+                const previous = getPlayerMatchStats(p, previousSlice);
+                const delta = current.points - previous.points;
+
+                return {
+                    name: p,
+                    current: current.points,
+                    previous: previous.points,
+                    delta,
+                    exact: current.exact,
+                    diff: current.diff,
+                    tendency: current.tendency,
+                    tips: current.tips
+                };
+            }).sort((a, b) => b.delta - a.delta || b.current - a.current || b.exact - a.exact);
+
+            const label = value === 'ALL' ? 'bisher' : `letzte ${n} Spiele`;
+
+            let html = `<div class="advanced-card-grid">`;
+
+            rows.forEach((r, idx) => {
+                const deltaText = r.delta > 0 ? `+${r.delta}` : `${r.delta}`;
+                const deltaCls = r.delta > 0 ? 'momentum-delta-positive' : 'momentum-delta-neutral';
+
+                html += `
+                    <div class="momentum-card">
+                        <div class="momentum-title-line">
+                            <div class="momentum-player-name"><span class="momentum-rank">${idx + 1}</span>${r.name}</div>
+                            <div class="momentum-badge ${deltaCls}">${deltaText}</div>
+                        </div>
+                        <div class="feature-metric-row"><span>Punkte ${label}</span><span>${r.current}</span></div>
+                        <div class="feature-metric-row"><span>Vorheriger Zeitraum</span><span>${previousSlice.length ? r.previous : '-'}</span></div>
+                        <div class="feature-metric-row"><span>Exakte Treffer</span><span>${r.exact}</span></div>
+                        <div class="feature-metric-row"><span>Differenzen</span><span>${r.diff}</span></div>
+                        <div class="feature-metric-row"><span>Gewertete Tipps</span><span>${r.tips}/${currentSlice.length}</span></div>
+                    </div>`;
+            });
+
+            html += `</div>`;
+
+            container.innerHTML = html;
+        }
+
 
         function updateUI() {
             ensureAllPlayerData();
@@ -1059,6 +1456,8 @@
             `;
             calculatePreTournamentAnalysis();
             calculatePreTournamentAnalysis();
+            renderDuelMode();
+            renderMomentumStats();
             renderPointsProgressionChart();
         }
 
@@ -1090,6 +1489,55 @@
         }
 
 
+
+        function getMatchDisplayPriority(match, now = new Date()) {
+            const start = new Date(match.date);
+            const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
+            const recentEnd = new Date(end.getTime() + 6 * 60 * 60 * 1000);
+            const upcomingSoon = new Date(now.getTime() + 18 * 60 * 60 * 1000);
+
+            // 0 = läuft gerade bzw. sollte jetzt im Fokus stehen
+            if (now >= start && now <= end) return 0;
+
+            // 1 = gerade vorbei / Ergebnis wahrscheinlich relevant
+            if (now > end && now <= recentEnd) return 1;
+
+            // 2 = nächstes/kommendes Spiel in den nächsten 18 Stunden
+            if (start > now && start <= upcomingSoon) return 2;
+
+            // 3 = Rest chronologisch
+            return 3;
+        }
+
+        function getOrderedMatchesForDisplay() {
+            const now = new Date();
+
+            return [...window.matches].sort((a, b) => {
+                const pa = getMatchDisplayPriority(a, now);
+                const pb = getMatchDisplayPriority(b, now);
+
+                if (pa !== pb) return pa - pb;
+
+                const da = new Date(a.date);
+                const db = new Date(b.date);
+
+                // Aktuelle/relevante Spiele nach Nähe zu jetzt sortieren
+                if (pa <= 2) return Math.abs(da - now) - Math.abs(db - now);
+
+                // Rest normal nach Spielplan
+                return da - db;
+            });
+        }
+
+        function getCurrentMatchBadge(match, now = new Date()) {
+            const p = getMatchDisplayPriority(match, now);
+            if (p === 0) return ' • aktuell';
+            if (p === 1) return ' • gerade relevant';
+            if (p === 2) return ' • bald';
+            return '';
+        }
+
+
         function renderMatches() {
             ensureAllPlayerData();
             let c = document.getElementById('matches-container'); html = '';
@@ -1097,7 +1545,7 @@
             let groupGames = window.matches.filter(m => m.r.includes('Gruppe'));
             const groupStageClosed = groupGames.every(m => m.real[0] !== null && m.real[1] !== null);
             
-            window.matches.forEach((m, index) => {
+            getOrderedMatchesForDisplay().forEach((m, index) => {
                 let isGer = (m.h === 'Deutschland' || m.a === 'Deutschland');
                 let isLocked = now >= new Date(m.date); let isKo = m.id >= 73;
                 
@@ -1128,14 +1576,21 @@
                 let dPct = Math.round((dCount / totalVotes) * 100);
                 let aPct = Math.round((aCount / totalVotes) * 100);
 
-                let tipsHtml = `<div class="tip-row"><span style="color:var(--ger-gold);font-weight:bold;">Live-Ergebnis:</span> <span class="real-val">${m.real[0]!==null?m.real[0]:'-'}:${m.real[1]!==null?m.real[1]:'-'}</span></div>`;
+                let currentTipForExplain = (m.tips && m.tips[window.currentUser]) ? m.tips[window.currentUser] : [null, null];
+                let currentExplain = getPointExplanation(currentTipForExplain, m);
+                let tipsHtml = `<div class="tip-row with-explain"><span style="color:var(--ger-gold);font-weight:bold;">Live-Ergebnis:</span><span class="tip-score-block"><span class="real-val">${m.real[0]!==null?m.real[0]:'-'}:${m.real[1]!==null?m.real[1]:'-'}</span><span class="tip-points-explain ${currentExplain.cls}">${window.currentUser !== 'Admin' ? currentExplain.label : ''}</span></span></div>`;
                 window.players.forEach(p => {
-                    if(p !== window.currentUser) tipsHtml += `<div class="tip-row"><span>${p}:</span> <span class="tip-val">${(m.tips[p] && m.tips[p][0]!==null)?m.tips[p][0]+':'+m.tips[p][1]:'-:-'}</span></div>`;
+                    if(p !== window.currentUser) {
+                        const pTip = (m.tips && m.tips[p]) ? m.tips[p] : [null, null];
+                        const explain = getPointExplanation(pTip, m);
+                        const scoreText = (pTip && pTip[0] !== null) ? pTip[0] + ':' + pTip[1] : '-:-';
+                        tipsHtml += `<div class="tip-row with-explain"><span>${p}:</span><span class="tip-score-block"><span class="tip-val">${scoreText}</span><span class="tip-points-explain ${explain.cls}">${explain.label}</span></span></div>`;
+                    }
                 });
 
                 html += `
                     <div class="match-card ${isGer?'match-ger':''}" style="animation-delay: ${Math.min(index * 25, 400)}ms">
-                        <div class="match-meta"><span>Spiel ${m.id} • ${m.r}</span><span id="timer-${m.id}"></span></div>
+                        <div class="match-meta"><span>Spiel ${m.id} • ${m.r}${getCurrentMatchBadge(m, now)}</span><span id="timer-${m.id}"></span></div>
                         <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">🏟️ ${m.stadium || 'Stadion'}</div>
                         <div style="font-size:0.72rem; color:var(--ger-gold); margin-bottom:10px;">🕒 ${m.date_str} Uhr (MESZ)</div>
                         <div style="font-size:0.68rem; color:var(--text-muted); font-weight:800; text-transform:uppercase; margin-bottom:6px;">
