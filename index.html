@@ -727,6 +727,381 @@
             }
         }
 
+
+        /* PRIZE PROPOSAL + VOTING SYSTEM */
+        .prize-phase-subtitle {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 770;
+            line-height: 1.35;
+            margin-top: -6px;
+            margin-bottom: 14px;
+        }
+
+        .prize-progress-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            gap: 10px;
+            margin: 14px 0 16px;
+        }
+
+        .prize-progress-chip {
+            border-radius: 17px;
+            padding: 11px 12px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(0,0,0,0.18);
+        }
+
+        .prize-progress-chip.done {
+            border-color: rgba(52,199,89,0.35);
+            background: rgba(52,199,89,0.07);
+        }
+
+        .prize-progress-name {
+            color: var(--text-main);
+            font-size: 0.84rem;
+            font-weight: 950;
+            margin-bottom: 3px;
+        }
+
+        .prize-progress-count {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .prize-action-button {
+            width: 100%;
+            border: 1px solid rgba(255,204,0,0.35);
+            background: linear-gradient(135deg, rgba(255,204,0,0.18), rgba(255,255,255,0.045));
+            color: var(--text-main);
+            border-radius: 18px;
+            padding: 13px 14px;
+            font-size: 0.88rem;
+            font-weight: 950;
+            cursor: pointer;
+            margin: 8px 0 14px;
+        }
+
+        .prize-action-button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .prize-suggestions-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .prize-suggestion-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            border-radius: 17px;
+            border: 1px solid rgba(255,255,255,0.09);
+            background: rgba(0,0,0,0.16);
+            padding: 12px;
+        }
+
+        .prize-suggestion-text {
+            color: var(--text-main);
+            font-weight: 850;
+            line-height: 1.25;
+        }
+
+        .prize-suggestion-author {
+            color: var(--text-muted);
+            font-size: 0.70rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .prize-vote-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+            gap: 11px;
+            margin-top: 13px;
+        }
+
+        .prize-vote-card {
+            position: relative;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.11);
+            background:
+                radial-gradient(circle at 24% 16%, rgba(255,204,0,0.09), transparent 34%),
+                rgba(0,0,0,0.18);
+            padding: 14px;
+            cursor: pointer;
+            min-height: 112px;
+            transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .prize-vote-card:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255,204,0,0.34);
+        }
+
+        .prize-vote-card.selected {
+            border-color: rgba(255,204,0,0.74);
+            background:
+                radial-gradient(circle at 24% 16%, rgba(255,204,0,0.18), transparent 34%),
+                rgba(255,204,0,0.06);
+        }
+
+        .prize-vote-card.selected::after {
+            content: "✓";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,204,0,0.20);
+            border: 1px solid rgba(255,204,0,0.42);
+            color: var(--ger-gold);
+            font-weight: 950;
+        }
+
+        .prize-vote-title {
+            color: var(--text-main);
+            font-weight: 950;
+            line-height: 1.2;
+            padding-right: 26px;
+        }
+
+        .prize-vote-author {
+            color: var(--text-muted);
+            font-size: 0.70rem;
+            font-weight: 900;
+            margin-top: 8px;
+        }
+
+        .prize-result-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            overflow: hidden;
+            margin-top: 9px;
+        }
+
+        .prize-result-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(255,204,0,0.92), rgba(255,255,255,0.35));
+        }
+
+        .prize-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0,0,0,0.72);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 22px;
+        }
+
+        .prize-modal-card {
+            width: min(92vw, 460px);
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background:
+                radial-gradient(circle at 18% 12%, rgba(255,204,0,0.16), transparent 34%),
+                linear-gradient(145deg, rgba(24,24,27,0.97), rgba(10,10,12,0.97));
+            box-shadow: 0 30px 90px rgba(0,0,0,0.55);
+            padding: 22px;
+        }
+
+        .prize-modal-title {
+            color: var(--text-main);
+            font-size: 1.35rem;
+            font-weight: 950;
+            letter-spacing: -0.035em;
+            margin-bottom: 8px;
+        }
+
+        .prize-modal-text {
+            color: var(--text-muted);
+            font-size: 0.84rem;
+            font-weight: 760;
+            line-height: 1.36;
+            margin-bottom: 15px;
+        }
+
+        .prize-modal-input {
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.065);
+            color: var(--text-main);
+            padding: 14px;
+            margin-bottom: 10px;
+            font-size: 0.92rem;
+            font-weight: 780;
+            outline: none;
+        }
+
+        .prize-modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .prize-modal-secondary,
+        .prize-modal-primary {
+            flex: 1;
+            border-radius: 16px;
+            padding: 13px 12px;
+            font-weight: 950;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+
+        .prize-modal-secondary {
+            background: rgba(255,255,255,0.055);
+            color: var(--text-muted);
+        }
+
+        .prize-modal-primary {
+            background: rgba(255,204,0,0.18);
+            color: var(--text-main);
+            border-color: rgba(255,204,0,0.34);
+        }
+
+
+        /* LOCKED BONUS TIPS */
+        .bonus-locked-box {
+            margin: 12px 0;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.045);
+            padding: 12px 13px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .bonus-locked-label {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .bonus-locked-value {
+            color: var(--text-main);
+            font-size: 0.95rem;
+            font-weight: 950;
+            text-align: right;
+        }
+
+        .bonus-lock-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 8px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,204,0,0.24);
+            background: rgba(255,204,0,0.07);
+            color: var(--ger-gold);
+            font-size: 0.66rem;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .bonus-admin-note {
+            color: var(--text-muted);
+            font-size: 0.70rem;
+            font-weight: 800;
+            margin-top: 6px;
+        }
+
+
+        /* RANKING DELTA + PRIZE EDIT */
+        .prize-edit-button {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.13);
+            background: rgba(255,255,255,0.055);
+            color: var(--text-main);
+            border-radius: 18px;
+            padding: 12px 14px;
+            font-size: 0.84rem;
+            font-weight: 950;
+            cursor: pointer;
+            margin: 0 0 12px;
+        }
+
+        .prize-edit-button:hover {
+            border-color: rgba(255,204,0,0.34);
+            color: var(--ger-gold);
+        }
+
+        .rank-delta-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-size: 0.68rem;
+            font-weight: 950;
+            margin-left: 6px;
+            white-space: nowrap;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.055);
+            color: var(--text-muted);
+        }
+
+        .rank-delta-pill.up {
+            color: #34c759;
+            border-color: rgba(52,199,89,0.30);
+            background: rgba(52,199,89,0.075);
+        }
+
+        .rank-delta-pill.down {
+            color: #ff453a;
+            border-color: rgba(255,69,58,0.30);
+            background: rgba(255,69,58,0.075);
+        }
+
+        .rank-delta-pill.same {
+            color: var(--text-muted);
+        }
+
+        .last-points-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-size: 0.68rem;
+            font-weight: 950;
+            color: var(--ger-gold);
+            border: 1px solid rgba(255,204,0,0.24);
+            background: rgba(255,204,0,0.075);
+            margin-left: 6px;
+            white-space: nowrap;
+        }
+
+        .leader-meta-line {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 5px;
+        }
+
 </style>
 </head>
 <body>
@@ -768,7 +1143,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: badge-hall-v1 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: prize-edit-ranking-delta-v1 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -793,7 +1168,7 @@
         <!-- DASHBOARD CONTAINER SECTIONS -->
         <div id="tab-dash" class="content-section active">
             <div class="card">
-                <div class="card-title">Live-Ranking</div>
+                <div class="card-title">Live-Ranking</div><div style="color:var(--text-muted);font-size:0.76rem;font-weight:800;margin-top:-8px;margin-bottom:12px;">Letztes Spiel: Punkte- und Rangänderung</div>
                 <div id="leaderboard-container"></div>
             </div>
             
@@ -806,28 +1181,8 @@
                 </div>
                 <div class="badge-grid-premium" id="badge-hall-container"></div>
 
-                <div class="prize-panel-premium">
-                    <div class="prize-title-row">
-                        <div class="prize-title">🏆 Siegerpreis</div>
-                        <div class="prize-status-pill">noch offen</div>
-                    </div>
-                    <div class="prize-options-grid">
-                        <div class="prize-option">
-                            <div class="prize-option-icon">🍕</div>
-                            <div class="prize-option-title">Final-Abend</div>
-                            <div class="prize-option-text">Die anderen zahlen dem Sieger Essen/Getränk beim Finale.</div>
-                        </div>
-                        <div class="prize-option">
-                            <div class="prize-option-icon">🏆</div>
-                            <div class="prize-option-title">Mini-Wanderpokal</div>
-                            <div class="prize-option-text">Kleiner Pokal mit Namen. Bleibt bis zum nächsten Turnier beim Gewinner.</div>
-                        </div>
-                        <div class="prize-option">
-                            <div class="prize-option-icon">🎁</div>
-                            <div class="prize-option-title">20€ Siegergutschein</div>
-                            <div class="prize-option-text">Kleiner Einsatz, aber genug, damit das Ranking richtig weh tut.</div>
-                        </div>
-                    </div>
+                <div class="prize-panel-premium" id="winner-prize-panel">
+                    <div id="prize-voting-container"></div>
                 </div>
             </div>
 
@@ -917,7 +1272,7 @@
         <div id="tab-bonus" class="content-section">
             <div class="card">
                 <div class="card-title">Bonus Tipps</div>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">Die Bonuspunkte fließen nach offizieller Auswertung direkt in euer Ranking ein.</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">Bonus-Tipps sind gesperrt. Die Bonuspunkte fließen nach offizieller Auswertung direkt in euer Ranking ein.</p>
                 <div id="bonus-container"></div>
             </div>
         </div>
@@ -971,9 +1326,9 @@
         const db = getFirestore(app);
         const docRef = doc(db, "wm_daten_2026", "tippspiel");
 
-        window.cloudSaveEngine = async (matchesArray, bonusArray) => {
+        window.cloudSaveEngine = async (matchesArray, bonusArray, prizeObject) => {
             try {
-                await setDoc(docRef, { matches: matchesArray, bonus: bonusArray, lastUpdate: new Date().toISOString() });
+                await setDoc(docRef, { matches: matchesArray, bonus: bonusArray, prize: prizeObject || window.prizeState || null, lastUpdate: new Date().toISOString() });
             } catch (e) { console.error("Cloud Error Syncing:", e); }
         };
 
@@ -981,7 +1336,7 @@
             if (snapshot.exists()) {
                 const cloudData = snapshot.data();
                 if (cloudData.matches && cloudData.bonus && window.executeLiveSyncFromCloud) {
-                    window.executeLiveSyncFromCloud(cloudData.matches, cloudData.bonus);
+                    window.executeLiveSyncFromCloud(cloudData.matches, cloudData.bonus, cloudData.prize || null);
                 }
             }
         });
@@ -1164,6 +1519,8 @@
             renderBonus();
             renderTablesAndTree();
             calculatePreTournamentAnalysis();
+            renderPrizeVotingPanel();
+            maybeAskForPrizeIdeasAfterLogin();
         }
 
 
@@ -1361,14 +1718,44 @@
         }
 
         window.bonus = [
-            { id: 'q1', q: 'Wer wird Weltmeister?', pts: 15, adminRes: '', tips: { Crisha: 'Frankreich', Eddy: 'Spanien', Nicola: 'Frankreich', Jana: '', Gemini: 'Spanien' } },
-            { id: 'q2', q: 'Die DFB-Reise', pts: 10, adminRes: '', tips: { Crisha: 'Halbfinale', Eddy: 'Viertelfinale', Nicola: 'Halbfinale', Jana: '', Gemini: 'Finale' } },
-            { id: 'q3', q: 'Bester DFB Torschütze', pts: 5, adminRes: '', tips: { Crisha: 'Wirtz', Eddy: 'Wirtz', Nicola: 'Wirtz', Jana: '', Gemini: 'Havertz' } },
-            { id: 'q4', q: 'Karten-König (DFB)', pts: 5, adminRes: '', tips: { Crisha: 'Rüdiger', Eddy: 'Raum', Nicola: 'Musiala', Jana: '', Gemini: 'Andrich' } },
-            { id: 'q5', q: 'Elfmeter-Krimi (DFB)?', pts: 5, adminRes: '', tips: { Crisha: 'Nein', Eddy: 'Nein', Nicola: 'Nein', Jana: '', Gemini: 'Ja' } },
-            { id: 'q6', q: 'Punkte DFB Vorrunde', pts: 5, adminRes: '', tips: { Crisha: '9', Eddy: '9', Nicola: '6', Jana: '', Gemini: '7' } },
-            { id: 'q7', q: 'Turnier Torschützenkönig', pts: 10, adminRes: '', tips: { Crisha: 'Kane', Eddy: 'Torres', Nicola: 'Mbappe', Jana: '', Gemini: 'Mbappe' } }
+            { id: 'q1', q: 'Wer wird Weltmeister?', pts: 15, adminRes: '', tips: { Crisha: 'Frankreich', Eddy: 'Spanien', Nicola: 'Frankreich', Jana: 'Deutschland', Gemini: 'Spanien' } },
+            { id: 'q2', q: 'Die DFB-Reise', pts: 10, adminRes: '', tips: { Crisha: 'Halbfinale', Eddy: 'Viertelfinale', Nicola: 'Halbfinale', Jana: 'Finale', Gemini: 'Finale' } },
+            { id: 'q3', q: 'Bester DFB Torschütze', pts: 5, adminRes: '', tips: { Crisha: 'Wirtz', Eddy: 'Wirtz', Nicola: 'Wirtz', Jana: 'Musiala', Gemini: 'Havertz' } },
+            { id: 'q4', q: 'Karten-König (DFB)', pts: 5, adminRes: '', tips: { Crisha: 'Rüdiger', Eddy: 'Raum', Nicola: 'Musiala', Jana: 'Rüdiger', Gemini: 'Andrich' } },
+            { id: 'q5', q: 'Elfmeter-Krimi (DFB)?', pts: 5, adminRes: '', tips: { Crisha: 'Nein', Eddy: 'Nein', Nicola: 'Nein', Jana: 'Nein', Gemini: 'Ja' } },
+            { id: 'q6', q: 'Punkte DFB Vorrunde', pts: 5, adminRes: '', tips: { Crisha: '9', Eddy: '9', Nicola: '6', Jana: '7', Gemini: '7' } },
+            { id: 'q7', q: 'Turnier Torschützenkönig', pts: 10, adminRes: '', tips: { Crisha: 'Kane', Eddy: 'Torres', Nicola: 'Mbappe', Jana: 'Mbappe', Gemini: 'Mbappe' } }
         ];
+
+
+
+        const JANA_BONUS_TIPS_LOCKED = {
+            q1: 'Deutschland',
+            q2: 'Finale',
+            q3: 'Musiala',
+            q4: 'Rüdiger',
+            q5: 'Nein',
+            q6: '7',
+            q7: 'Mbappe'
+        };
+
+        function applyJanaLockedBonusTips() {
+            let changed = false;
+
+            if (!Array.isArray(window.bonus)) return false;
+
+            window.bonus.forEach(b => {
+                if (!b.tips || typeof b.tips !== 'object') b.tips = {};
+                const target = JANA_BONUS_TIPS_LOCKED[b.id];
+
+                if (typeof target !== 'undefined' && b.tips.Jana !== target) {
+                    b.tips.Jana = target;
+                    changed = true;
+                }
+            });
+
+            return changed;
+        }
 
 
         function ensureAllPlayerData() {
@@ -1391,6 +1778,8 @@
                     });
                 });
             }
+
+            applyJanaLockedBonusTips();
         }
 
 
@@ -1918,6 +2307,481 @@
         }
 
 
+
+        window.prizeVoteSelection = [];
+
+        function getPrizePlayers() {
+            return (window.players || []).filter(p => p !== 'Gemini');
+        }
+
+        function getPrizeDeviceId() {
+            let id = localStorage.getItem('wm_prize_device_id');
+            if (!id) {
+                id = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+                localStorage.setItem('wm_prize_device_id', id);
+            }
+            return id;
+        }
+
+        function createDefaultPrizeState() {
+            const nowIso = new Date().toISOString();
+            return {
+                startAt: nowIso,
+                voteStartAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+                suggestions: {},
+                votes: {}
+            };
+        }
+
+        function ensurePrizeState() {
+            if (!window.prizeState || typeof window.prizeState !== 'object') {
+                const local = localStorage.getItem('wm_prize_state_v1');
+                if (local) {
+                    try { window.prizeState = JSON.parse(local); }
+                    catch(e) { window.prizeState = createDefaultPrizeState(); }
+                } else {
+                    window.prizeState = createDefaultPrizeState();
+                }
+            }
+
+            if (!window.prizeState.startAt) window.prizeState.startAt = new Date().toISOString();
+            if (!window.prizeState.voteStartAt) {
+                window.prizeState.voteStartAt = new Date(new Date(window.prizeState.startAt).getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
+            }
+            if (!window.prizeState.suggestions || typeof window.prizeState.suggestions !== 'object') window.prizeState.suggestions = {};
+            if (!window.prizeState.votes || typeof window.prizeState.votes !== 'object') window.prizeState.votes = {};
+
+            getPrizePlayers().forEach(p => {
+                if (!Array.isArray(window.prizeState.suggestions[p])) window.prizeState.suggestions[p] = [];
+            });
+
+            localStorage.setItem('wm_prize_state_v1', JSON.stringify(window.prizeState));
+        }
+
+        function getAllPrizeSuggestions() {
+            ensurePrizeState();
+            let out = [];
+
+            Object.entries(window.prizeState.suggestions).forEach(([player, arr]) => {
+                (arr || []).forEach((s, idx) => {
+                    if (!s || !String(s.text || '').trim()) return;
+                    out.push({
+                        id: s.id || `${player}_${idx}`,
+                        text: String(s.text).trim(),
+                        author: s.author || player,
+                        createdAt: s.createdAt || ''
+                    });
+                });
+            });
+
+            return out;
+        }
+
+        function getPrizeCollectionStatus() {
+            ensurePrizeState();
+            const players = getPrizePlayers();
+            const rows = players.map(p => ({
+                player: p,
+                count: Math.min(2, (window.prizeState.suggestions[p] || []).filter(x => x && String(x.text || '').trim()).length)
+            }));
+
+            return {
+                rows,
+                completed: rows.filter(r => r.count >= 2).length,
+                total: rows.length,
+                allDone: rows.every(r => r.count >= 2)
+            };
+        }
+
+        function isPrizeVotingOpen() {
+            ensurePrizeState();
+            const status = getPrizeCollectionStatus();
+            return status.allDone && new Date() >= new Date(window.prizeState.voteStartAt);
+        }
+
+        function formatPrizeDate(value) {
+            try {
+                return new Intl.DateTimeFormat('de-DE', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }).format(new Date(value));
+            } catch(e) {
+                return value;
+            }
+        }
+
+        function getPrizeVoteCounts() {
+            ensurePrizeState();
+            const counts = {};
+            getAllPrizeSuggestions().forEach(s => counts[s.id] = 0);
+
+            Object.values(window.prizeState.votes || {}).forEach(v => {
+                (v.choices || []).forEach(id => {
+                    if (typeof counts[id] === 'undefined') counts[id] = 0;
+                    counts[id]++;
+                });
+            });
+
+            return counts;
+        }
+
+
+        function canCurrentUserEditPrizeIdeas() {
+            ensurePrizeState();
+            if (!window.currentUser || !getPrizePlayers().includes(window.currentUser)) return false;
+            if (isPrizeVotingOpen()) return false;
+            return true;
+        }
+
+
+        function renderPrizeVotingPanel() {
+            const container = document.getElementById('prize-voting-container');
+            if (!container) return;
+
+            ensurePrizeState();
+
+            const status = getPrizeCollectionStatus();
+            const suggestions = getAllPrizeSuggestions();
+            const voteOpen = isPrizeVotingOpen();
+            const deviceId = getPrizeDeviceId();
+            const deviceVote = window.prizeState.votes[deviceId] || null;
+            const voteCounts = getPrizeVoteCounts();
+            const totalVotes = Object.values(voteCounts).reduce((a, b) => a + b, 0);
+
+            let statusText = 'Ideenphase';
+            if (voteOpen && !deviceVote) statusText = 'Abstimmung offen';
+            if (voteOpen && deviceVote) statusText = 'abgestimmt';
+
+            let html = `
+                <div class="prize-title-row">
+                    <div>
+                        <div class="prize-title">🏆 Siegerpreis</div>
+                    </div>
+                    <div class="prize-status-pill">${statusText}</div>
+                </div>
+                <div class="prize-phase-subtitle">
+                    Jeder Spieler bringt 2 Vorschläge. Abstimmung ab ${formatPrizeDate(window.prizeState.voteStartAt)}, sobald alle Vorschläge vollständig sind. Pro Gerät genau 2 Stimmen.
+                </div>
+
+                <div class="prize-progress-strip">
+                    ${status.rows.map(r => `
+                        <div class="prize-progress-chip ${r.count >= 2 ? 'done' : ''}">
+                            <div class="prize-progress-name">${r.player}</div>
+                            <div class="prize-progress-count">${r.count}/2 Vorschläge</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            const currentSuggestions = (window.currentUser && window.prizeState.suggestions[window.currentUser]) ? window.prizeState.suggestions[window.currentUser] : [];
+            const needsIdeas = window.currentUser && getPrizePlayers().includes(window.currentUser) && currentSuggestions.filter(s => s && String(s.text || '').trim()).length < 2;
+
+            if (!voteOpen) {
+                if (needsIdeas) {
+                    html += `<button class="prize-action-button" onclick="showPrizeIdeaModal()">Meine 2 Siegerpreis-Ideen eintragen</button>`;
+                } else if (canCurrentUserEditPrizeIdeas()) {
+                    html += `<button class="prize-edit-button" onclick="showPrizeIdeaModal()">Meine Siegerpreis-Ideen bearbeiten</button>`;
+                }
+
+                if (!status.allDone) {
+                    html += `<div class="prize-phase-subtitle">Es fehlen noch Vorschläge. Die Abstimmung bleibt gesperrt, bis alle Spieler 2 Ideen abgegeben haben.</div>`;
+                } else {
+                    html += `<div class="prize-phase-subtitle">Alle Vorschläge sind da. Die Abstimmung startet automatisch zum Termin oben.</div>`;
+                }
+
+                html += `<div class="prize-suggestions-list">
+                    ${suggestions.length ? suggestions.map(s => `
+                        <div class="prize-suggestion-row">
+                            <div class="prize-suggestion-text">${escapePrizeHtml(s.text)}</div>
+                            <div class="prize-suggestion-author">${s.author}</div>
+                        </div>
+                    `).join('') : `<div class="prize-suggestion-row"><div class="prize-suggestion-text">Noch keine Vorschläge vorhanden.</div></div>`}
+                </div>`;
+
+                container.innerHTML = html;
+                return;
+            }
+
+            if (!deviceVote) {
+                html += `<div class="prize-phase-subtitle">Wähle genau 2 Vorschläge. Dieses Gerät kann danach nicht erneut abstimmen.</div>`;
+                html += `<div class="prize-vote-grid">
+                    ${suggestions.map(s => `
+                        <div class="prize-vote-card ${window.prizeVoteSelection.includes(s.id) ? 'selected' : ''}" onclick="togglePrizeVoteChoice('${s.id}')">
+                            <div class="prize-vote-title">${escapePrizeHtml(s.text)}</div>
+                            <div class="prize-vote-author">von ${s.author}</div>
+                        </div>
+                    `).join('')}
+                </div>`;
+                html += `<button class="prize-action-button" onclick="submitPrizeVote()" ${window.prizeVoteSelection.length === 2 ? '' : 'disabled'}>2 Stimmen abgeben (${window.prizeVoteSelection.length}/2)</button>`;
+
+                container.innerHTML = html;
+                return;
+            }
+
+            const sorted = suggestions
+                .map(s => ({ ...s, votes: voteCounts[s.id] || 0 }))
+                .sort((a, b) => b.votes - a.votes || a.text.localeCompare(b.text));
+
+            html += `<div class="prize-phase-subtitle">Dieses Gerät hat bereits abgestimmt. Aktueller Zwischenstand:</div>`;
+            html += `<div class="prize-suggestions-list">
+                ${sorted.map(s => {
+                    const pct = totalVotes > 0 ? Math.round((s.votes / totalVotes) * 100) : 0;
+                    return `
+                        <div class="prize-suggestion-row" style="display:block;">
+                            <div style="display:flex;justify-content:space-between;gap:12px;">
+                                <div class="prize-suggestion-text">${escapePrizeHtml(s.text)}</div>
+                                <div class="prize-suggestion-author">${s.votes} Stimme${s.votes === 1 ? '' : 'n'}</div>
+                            </div>
+                            <div class="prize-result-bar"><div class="prize-result-fill" style="width:${pct}%"></div></div>
+                        </div>`;
+                }).join('')}
+            </div>`;
+
+            container.innerHTML = html;
+        }
+
+        function escapePrizeHtml(value) {
+            return String(value || '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function showPrizeIdeaModal() {
+            ensurePrizeState();
+            if (!window.currentUser || !getPrizePlayers().includes(window.currentUser)) return;
+
+            const existing = window.prizeState.suggestions[window.currentUser] || [];
+            const i1 = document.getElementById('prize-idea-1');
+            const i2 = document.getElementById('prize-idea-2');
+
+            if (i1) i1.value = existing[0]?.text || '';
+            if (i2) i2.value = existing[1]?.text || '';
+
+            const modal = document.getElementById('prize-idea-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closePrizeIdeaModal() {
+            const modal = document.getElementById('prize-idea-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function submitPrizeIdeasFromModal() {
+            ensurePrizeState();
+            if (!window.currentUser || !getPrizePlayers().includes(window.currentUser)) return;
+
+            if (isPrizeVotingOpen()) {
+                alert('Die Abstimmung ist bereits geöffnet. Vorschläge können nicht mehr bearbeitet werden.');
+                closePrizeIdeaModal();
+                return;
+            }
+
+            const v1 = (document.getElementById('prize-idea-1')?.value || '').trim();
+            const v2 = (document.getElementById('prize-idea-2')?.value || '').trim();
+
+            if (v1.length < 3 || v2.length < 3) {
+                alert('Bitte zwei richtige Vorschläge eintragen.');
+                return;
+            }
+
+            if (v1.toLowerCase() === v2.toLowerCase()) {
+                alert('Bitte zwei unterschiedliche Vorschläge eintragen.');
+                return;
+            }
+
+            window.prizeState.suggestions[window.currentUser] = [
+                { id: `${window.currentUser}_1`, text: v1, author: window.currentUser, createdAt: new Date().toISOString() },
+                { id: `${window.currentUser}_2`, text: v2, author: window.currentUser, createdAt: new Date().toISOString() }
+            ];
+
+            localStorage.setItem('wm_prize_state_v1', JSON.stringify(window.prizeState));
+            closePrizeIdeaModal();
+            renderPrizeVotingPanel();
+            saveData();
+        }
+
+        function maybeAskForPrizeIdeasAfterLogin() {
+            ensurePrizeState();
+
+            if (!window.currentUser || !getPrizePlayers().includes(window.currentUser)) return;
+
+            const arr = window.prizeState.suggestions[window.currentUser] || [];
+            const count = arr.filter(s => s && String(s.text || '').trim()).length;
+
+            if (count < 2) {
+                setTimeout(() => showPrizeIdeaModal(), 550);
+            }
+        }
+
+        function togglePrizeVoteChoice(id) {
+            ensurePrizeState();
+
+            if (!isPrizeVotingOpen()) return;
+
+            const deviceId = getPrizeDeviceId();
+            if (window.prizeState.votes[deviceId]) return;
+
+            if (window.prizeVoteSelection.includes(id)) {
+                window.prizeVoteSelection = window.prizeVoteSelection.filter(x => x !== id);
+            } else {
+                if (window.prizeVoteSelection.length >= 2) {
+                    alert('Du hast genau 2 Stimmen. Entferne zuerst eine Auswahl.');
+                    return;
+                }
+                window.prizeVoteSelection.push(id);
+            }
+
+            renderPrizeVotingPanel();
+        }
+
+        function submitPrizeVote() {
+            ensurePrizeState();
+
+            if (!isPrizeVotingOpen()) {
+                alert('Die Abstimmung ist noch nicht geöffnet.');
+                return;
+            }
+
+            const deviceId = getPrizeDeviceId();
+
+            if (window.prizeState.votes[deviceId]) {
+                alert('Dieses Gerät hat bereits abgestimmt.');
+                return;
+            }
+
+            if (window.prizeVoteSelection.length !== 2) {
+                alert('Bitte genau 2 Vorschläge auswählen.');
+                return;
+            }
+
+            window.prizeState.votes[deviceId] = {
+                deviceId,
+                user: window.currentUser || 'Unbekannt',
+                choices: [...window.prizeVoteSelection],
+                createdAt: new Date().toISOString()
+            };
+
+            window.prizeVoteSelection = [];
+            localStorage.setItem('wm_prize_state_v1', JSON.stringify(window.prizeState));
+            renderPrizeVotingPanel();
+            saveData();
+        }
+
+
+
+        function getCompletedMatchesForRankingDelta() {
+            return [...window.matches]
+                .filter(m => m.real && m.real[0] !== null && m.real[1] !== null)
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+
+        function calculateScoresUntilMatch(excludedLastMatchId = null) {
+            let scores = {};
+            window.players.forEach(p => scores[p] = { m: 0, b: 0 });
+
+            window.matches.forEach(m => {
+                if (!m.real || m.real[0] === null || m.real[1] === null) return;
+                if (excludedLastMatchId !== null && m.id === excludedLastMatchId) return;
+
+                const rH = m.real[0];
+                const rG = m.real[1];
+
+                window.players.forEach(p => {
+                    const tip = (m.tips && m.tips[p]) ? m.tips[p] : [null, null];
+                    const tH = tip[0];
+                    const tG = tip[1];
+
+                    scores[p].m += calculateMatchPoints(tH, tG, rH, rG);
+                });
+            });
+
+            window.bonus.forEach(b => {
+                if (b.adminRes && String(b.adminRes).trim()) {
+                    window.players.forEach(p => {
+                        const val = b.tips && typeof b.tips[p] !== 'undefined' ? b.tips[p] : '';
+                        if (String(val).trim().toLowerCase() === String(b.adminRes).trim().toLowerCase()) {
+                            scores[p].b += b.pts;
+                        }
+                    });
+                }
+            });
+
+            return scores;
+        }
+
+        function getRankMapFromScores(scoreObject) {
+            const rows = Object.entries(scoreObject)
+                .map(([name, s]) => ({ name, total: s.m + s.b, m: s.m, b: s.b }))
+                .sort((a, b) => b.total - a.total || b.m - a.m || a.name.localeCompare(b.name));
+
+            let map = {};
+            rows.forEach((r, idx) => map[r.name] = idx + 1);
+            return map;
+        }
+
+        function getRankingDeltaMeta() {
+            const completed = getCompletedMatchesForRankingDelta();
+
+            if (completed.length === 0) {
+                return {
+                    lastMatch: null,
+                    lastPoints: {},
+                    rankDelta: {},
+                    previousRanks: {},
+                    currentRanks: {}
+                };
+            }
+
+            const lastMatch = completed[completed.length - 1];
+            const currentScores = calculateScoresUntilMatch(null);
+            const previousScores = calculateScoresUntilMatch(lastMatch.id);
+
+            const currentRanks = getRankMapFromScores(currentScores);
+            const previousRanks = getRankMapFromScores(previousScores);
+
+            let lastPoints = {};
+            let rankDelta = {};
+
+            window.players.forEach(p => {
+                const tip = (lastMatch.tips && lastMatch.tips[p]) ? lastMatch.tips[p] : [null, null];
+                lastPoints[p] = calculateMatchPoints(tip[0], tip[1], lastMatch.real[0], lastMatch.real[1]);
+
+                const prev = previousRanks[p] || currentRanks[p] || 0;
+                const cur = currentRanks[p] || prev;
+                // positive = improved/up
+                rankDelta[p] = prev - cur;
+            });
+
+            return { lastMatch, lastPoints, rankDelta, previousRanks, currentRanks };
+        }
+
+        function renderRankingDeltaPills(playerName, deltaMeta) {
+            if (!deltaMeta || !deltaMeta.lastMatch) {
+                return `<span class="last-points-pill">+0 seit letztem Spiel</span>`;
+            }
+
+            const pts = deltaMeta.lastPoints[playerName] || 0;
+            const move = deltaMeta.rankDelta[playerName] || 0;
+
+            let moveHtml = `<span class="rank-delta-pill same">→ Platz gleich</span>`;
+
+            if (move > 0) {
+                moveHtml = `<span class="rank-delta-pill up">▲ ${move} Platz${move === 1 ? '' : 'e'}</span>`;
+            } else if (move < 0) {
+                const down = Math.abs(move);
+                moveHtml = `<span class="rank-delta-pill down">▼ ${down} Platz${down === 1 ? '' : 'e'}</span>`;
+            }
+
+            return `<span class="last-points-pill">+${pts} letztes Spiel</span>${moveHtml}`;
+        }
+
+
         function updateUI() {
             ensureAllPlayerData();
             ensurePlayerVisibilityUI();
@@ -2161,16 +3025,50 @@
 
         function renderBonus() {
             ensureAllPlayerData();
+
             let html = '';
+
             window.bonus.forEach(b => {
-                let adminHtml = window.currentUser === 'Admin' ? `<div class="b-admin-res"><input type="text" value="${b.adminRes}" onchange="saveBonus('${b.id}', this.value)"></div>` : `<div class="b-admin-res"><span style="color:white;font-weight:bold">${b.adminRes || '---'}</span></div>`;
-                let myTipValue = (b.tips && typeof b.tips[window.currentUser] !== 'undefined') ? b.tips[window.currentUser] : ''; let myTip = (window.currentUser !== 'Admin' && window.currentUser !== 'Gemini') ? `<input type="text" value="${myTipValue}" oninput="AudioEngine.click()" onchange="saveBonusTip('${b.id}', this.value)">` : '';
+                const isAdmin = window.currentUser === 'Admin';
+                const myTipValue = (b.tips && typeof b.tips[window.currentUser] !== 'undefined') ? b.tips[window.currentUser] : '';
+
+                let adminHtml = isAdmin
+                    ? `<div class="b-admin-res">
+                            <input type="text" value="${b.adminRes}" onchange="saveBonus('${b.id}', this.value)" placeholder="Offizielle Lösung eintragen">
+                            <div class="bonus-admin-note">Nur Admin: offizielle Bonus-Lösung für die spätere Auswertung.</div>
+                       </div>`
+                    : `<div class="b-admin-res"><span style="color:white;font-weight:bold">${b.adminRes || '---'}</span></div>`;
+
+                let myTip = '';
+                if (!isAdmin) {
+                    myTip = `<div class="bonus-locked-box">
+                        <div>
+                            <div class="bonus-locked-label">Dein Bonus-Tipp <span class="bonus-lock-pill">🔒 gesperrt</span></div>
+                        </div>
+                        <div class="bonus-locked-value">${myTipValue || '---'}</div>
+                    </div>`;
+                }
+
                 let others = `<div class="others-tips">`;
-                window.players.forEach(p => { if(p !== window.currentUser) others += `<div class="tip-row"><span>${p}:</span> <span>${(b.tips && typeof b.tips[p] !== 'undefined') ? b.tips[p] : ''}</span></div>`; });
-                html += `<div class="bonus-q"><div class="b-title"><span>${b.q}</span><span>+${b.pts} Pkt</span></div>${adminHtml}${myTip}${others}</div></div>`;
+                window.players.forEach(p => {
+                    if(p !== window.currentUser) {
+                        const val = (b.tips && typeof b.tips[p] !== 'undefined') ? b.tips[p] : '';
+                        others += `<div class="tip-row"><span>${p}:</span> <span>${val || '---'}</span></div>`;
+                    }
+                });
+                others += `</div>`;
+
+                html += `<div class="bonus-q">
+                    <div class="b-title"><span>${b.q}</span><span>+${b.pts} Pkt</span></div>
+                    ${adminHtml}
+                    ${myTip}
+                    ${others}
+                </div>`;
             });
+
             document.getElementById('bonus-container').innerHTML = html;
         }
+
 
         function renderTablesAndTree() {
             ensureAllPlayerData();
@@ -2203,6 +3101,29 @@
                 let score = window.currentUser === 'Admin' ? m.real : m.tips[window.currentUser];
                 trC.innerHTML += `<div class="tree-match"><div style="font-size:0.7rem; color:var(--text-muted);">Spiel ${m.id}</div><div style="display:flex; justify-content:space-between; font-weight:bold;"><span>${m.h}</span><span style="color:var(--ger-gold);">${score && score[0]!==null?score[0]+':'+score[1]:'-:-'}</span><span>${m.a}</span></div><div class="tree-winner">Sieger: TBD</div></div>`;
             });
+        }
+
+
+
+        function saveBonus(id, value) {
+            if (window.currentUser !== 'Admin') {
+                renderBonus();
+                return;
+            }
+
+            const b = window.bonus.find(x => x.id === id);
+            if (!b) return;
+
+            b.adminRes = String(value || '').trim();
+            saveData();
+            updateUI();
+            renderBonus();
+        }
+
+        function saveBonusTip(id, value) {
+            // Bonus-Tipps sind bewusst gesperrt und werden nicht mehr durch User geändert.
+            renderBonus();
+            alert('Bonus-Tipps sind gesperrt.');
         }
 
 
@@ -2287,7 +3208,7 @@
         }
 
 
-        window.executeLiveSyncFromCloud = function(cloudMatches, cloudBonus) {
+        window.executeLiveSyncFromCloud = function(cloudMatches, cloudBonus, cloudPrize) {
             if(Array.isArray(cloudMatches)) {
                 window.matches.forEach(m => {
                     const f = cloudMatches.find(x => x.id == m.id);
@@ -2307,6 +3228,8 @@
                 });
             }
             ensureAllPlayerData();
+            const janaBonusWasUpdated = applyJanaLockedBonusTips();
+            if(cloudPrize) { window.prizeState = cloudPrize; ensurePrizeState(); localStorage.setItem('wm_prize_state_v1', JSON.stringify(window.prizeState)); }
             localStorage.setItem('wm_data_final_all', JSON.stringify(window.matches));
             localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus));
             updateUI();
@@ -2314,10 +3237,14 @@
             renderBonus();
             renderTablesAndTree();
             calculatePreTournamentAnalysis();
+            renderPrizeVotingPanel();
+            if (janaBonusWasUpdated && window.cloudSaveEngine) {
+                setTimeout(() => saveData(), 0);
+            }
         };
 
-        function saveData() { ensureAllPlayerData(); localStorage.setItem('wm_data_final_all', JSON.stringify(window.matches)); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); if (window.cloudSaveEngine) window.cloudSaveEngine(window.matches, window.bonus); }
-        function loadData() { let d = localStorage.getItem('wm_data_final_all'); let b = localStorage.getItem('wm_bonus_final_all'); if(d){let p=JSON.parse(d); window.matches.forEach(m=>{let f=p.find(x=>x.id==m.id); if(f){m.real=f.real; m.tips=f.tips;}}); } if(b){let pb=JSON.parse(b); window.bonus.forEach(bo=>{let fb=pb.find(x=>x.id==bo.id); if(fb){bo.adminRes=fb.adminRes; bo.tips=fb.tips;}}); } ensureAllPlayerData(); }
+        function saveData() { ensureAllPlayerData(); ensurePrizeState(); localStorage.setItem('wm_data_final_all', JSON.stringify(window.matches)); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); localStorage.setItem('wm_prize_state_v1', JSON.stringify(window.prizeState)); if (window.cloudSaveEngine) window.cloudSaveEngine(window.matches, window.bonus, window.prizeState); }
+        function loadData() { let d = localStorage.getItem('wm_data_final_all'); let b = localStorage.getItem('wm_bonus_final_all'); let ps = localStorage.getItem('wm_prize_state_v1'); if(d){let p=JSON.parse(d); window.matches.forEach(m=>{let f=p.find(x=>x.id==m.id); if(f){m.real=f.real; m.tips=f.tips;}}); } if(b){let pb=JSON.parse(b); window.bonus.forEach(bo=>{let fb=pb.find(x=>x.id==bo.id); if(fb){bo.adminRes=fb.adminRes; bo.tips=fb.tips;}}); } if(ps){try{window.prizeState=JSON.parse(ps);}catch(e){}} ensureAllPlayerData(); ensurePrizeState(); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); }
 
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
@@ -2332,5 +3259,21 @@
 
         setInterval(clockTick, 60000);
     </script>
+
+    <div class="prize-modal-backdrop" id="prize-idea-modal">
+        <div class="prize-modal-card">
+            <div class="prize-modal-title">🏆 Zwei Siegerpreis-Ideen</div>
+            <div class="prize-modal-text">
+                Jeder bringt zwei Vorschläge. Du kannst deine eigenen Ideen bis zum Abstimmstart bearbeiten. Erst wenn alle ihre zwei Ideen eingetragen haben und die zwei Wochen vorbei sind, startet die Abstimmung.
+            </div>
+            <input class="prize-modal-input" id="prize-idea-1" maxlength="80" placeholder="Idee 1, z. B. Mini-Wanderpokal">
+            <input class="prize-modal-input" id="prize-idea-2" maxlength="80" placeholder="Idee 2, z. B. Final-Abend auf Kosten der anderen">
+            <div class="prize-modal-actions">
+                <button class="prize-modal-secondary" onclick="closePrizeIdeaModal()">Später</button>
+                <button class="prize-modal-primary" onclick="submitPrizeIdeasFromModal()">Ideen speichern</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
