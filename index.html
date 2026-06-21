@@ -1148,61 +1148,6 @@
             border: 1px solid rgba(255,69,58,0.30);
             background: rgba(255,69,58,0.075);
         }
-
-
-        /* QUALIFIED TEAMS PANEL */
-        .qualified-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
-            gap: 12px;
-        }
-
-        .qualified-card {
-            position: relative;
-            overflow: hidden;
-            border-radius: 22px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background:
-                radial-gradient(circle at 18% 20%, rgba(255,204,0,0.15), transparent 36%),
-                rgba(255,255,255,0.045);
-            padding: 15px;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
-        }
-
-        .qualified-card.germany {
-            border-color: rgba(255,204,0,0.30);
-            background:
-                radial-gradient(circle at 18% 20%, rgba(255,204,0,0.20), transparent 36%),
-                radial-gradient(circle at 88% 78%, rgba(255,59,48,0.10), transparent 32%),
-                rgba(255,255,255,0.045);
-        }
-
-        .qualified-team {
-            color: var(--text-main);
-            font-size: 1.12rem;
-            font-weight: 950;
-            letter-spacing: -0.03em;
-            margin-bottom: 5px;
-        }
-
-        .qualified-meta {
-            color: var(--text-muted);
-            font-size: 0.74rem;
-            font-weight: 850;
-            margin-bottom: 9px;
-        }
-
-        .qualified-slot {
-            display: inline-flex;
-            color: var(--ger-gold);
-            border: 1px solid rgba(255,204,0,0.25);
-            background: rgba(255,204,0,0.075);
-            border-radius: 999px;
-            padding: 5px 9px;
-            font-size: 0.68rem;
-            font-weight: 950;
-        }
-
 </style>
 </head>
 <body>
@@ -1244,7 +1189,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: calculated-qualified-v2 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: ko-only-qualified-v3 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -1268,40 +1213,7 @@
 
         <!-- DASHBOARD CONTAINER SECTIONS -->
         <div id="tab-dash" class="content-section active">
-
-            <div class="card">
-                <div class="card-title">✅ Sicher qualifiziert</div>
-                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 14px;">
-                    Nur Teams, deren Platz im K.O.-Baum aktuell zu 100% feststeht.
-                </p>
-                <div class="qualified-grid">
-                    <div class="qualified-card">
-                        <div class="qualified-team">Mexiko</div>
-                        <div class="qualified-meta">Gruppensieger A · Spiel 79</div>
-                        <div class="qualified-slot">Erster Gruppe A</div>
-                    </div>
-                    <div class="qualified-card">
-                        <div class="qualified-team">USA</div>
-                        <div class="qualified-meta">Gruppensieger D · Spiel 81</div>
-                        <div class="qualified-slot">Erster Gruppe D</div>
-                    </div>
-                    <div class="qualified-card germany">
-                        <div class="qualified-team">Deutschland</div>
-                        <div class="qualified-meta">Gruppensieger E · Spiel 74</div>
-                        <div class="qualified-slot">Erster Gruppe E</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">✅ Sicher qualifiziert</div>
-                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 14px;">
-                    Automatisch aus den in der App eingetragenen Ergebnissen berechnet. Es werden nur 100% sichere Plätze eingetragen.
-                </p>
-                <div class="qualified-grid" id="qualified-teams-container"></div>
-            </div>
-
-            <div class="card">
+<div class="card">
                 <div class="card-title">Live-Ranking</div><div style="color:var(--text-muted);font-size:0.76rem;font-weight:800;margin-top:-8px;margin-bottom:12px;">Letzte Änderung: Punkte + Rang</div>
                 <div id="leaderboard-container"></div>
             </div>
@@ -1701,8 +1613,7 @@
             if(tabId === 'tab-spiele') { morphAtmosphereColors('VAN'); renderMatches(); scrollToCurrentMatch(); }
             if(tabId === 'tab-bonus') { morphAtmosphereColors('NY'); renderBonus(); }
             if(tabId === 'tab-tabellen') { morphAtmosphereColors('LA'); renderTablesAndTree(); }
-            if(tabId === 'tab-dash') { morphAtmosphereColors('GER'); updateUI(); calculatePreTournamentAnalysis(); renderCalculatedQualifiedTeamsPanel();
-            renderBadgeHall(); renderDuelMode(); renderMomentumStats(); }
+            if(tabId === 'tab-dash') { morphAtmosphereColors('GER'); updateUI(); calculatePreTournamentAnalysis(); renderBadgeHall(); renderDuelMode(); renderMomentumStats(); }
         }
 
         // CORE RENDER ENGINES
@@ -3167,34 +3078,6 @@
 
             return certified;
         }
-
-        function renderCalculatedQualifiedTeamsPanel() {
-            const container = document.getElementById('qualified-teams-container');
-            if (!container) return;
-
-            const certified = applyCalculatedQualifiedTeams();
-
-            if (!certified.length) {
-                container.innerHTML = `
-                    <div class="qualified-card">
-                        <div class="qualified-team">Noch nichts 100% sicher</div>
-                        <div class="qualified-meta">Sobald Ergebnisse genug Klarheit geben, wird der K.O.-Baum automatisch gefüllt.</div>
-                        <div class="qualified-slot">Berechnung aus App-Ergebnissen</div>
-                    </div>`;
-                return;
-            }
-
-            container.innerHTML = certified.map(item => {
-                const target = KO_SLOT_TARGETS[item.slot];
-                return `
-                    <div class="qualified-card ${item.team === 'Deutschland' ? 'germany' : ''}">
-                        <div class="qualified-team">${item.team}</div>
-                        <div class="qualified-meta">${item.placeLabel} Gruppe ${item.group} · Spiel ${target ? target.matchId : '-'}</div>
-                        <div class="qualified-slot">${item.reason}</div>
-                    </div>`;
-            }).join('');
-        }
-
 
         function updateUI() {
             ensureAllPlayerData();
