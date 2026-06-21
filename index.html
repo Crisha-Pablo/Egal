@@ -1189,7 +1189,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: ko-only-qualified-v3 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: locked-placement-only-v4 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -2960,6 +2960,7 @@
             );
         }
 
+
         function getCertifiedPlacementsForGroup(groupLetter) {
             const table = calculateRealGroupTable(groupLetter);
             const rows = table.rows;
@@ -2967,7 +2968,8 @@
 
             if (!rows.length) return certified;
 
-            // If the group is complete, positions 1 and 2 are fixed from actual table.
+            // If the group is complete, the final places are fixed.
+            // Then 1st and 2nd can safely be inserted.
             if (table.complete) {
                 const sorted = sortGroupRowsForCertainty(rows);
 
@@ -2977,7 +2979,7 @@
                     placeLabel: 'Erster',
                     team: sorted[0].team,
                     slot: 'Erster Gruppe ' + groupLetter,
-                    reason: 'Gruppe vollständig'
+                    reason: 'Platz sicher, Gruppe vollständig'
                 });
 
                 if (sorted[1]) certified.push({
@@ -2986,7 +2988,7 @@
                     placeLabel: 'Zweiter',
                     team: sorted[1].team,
                     slot: 'Zweiter Gruppe ' + groupLetter,
-                    reason: 'Gruppe vollständig'
+                    reason: 'Platz sicher, Gruppe vollständig'
                 });
 
                 return certified;
@@ -2995,43 +2997,48 @@
             rows.forEach(row => {
                 const others = rows.filter(x => x.team !== row.team);
 
-                // Guaranteed group winner by points only:
-                // current points already higher than every other team's max points.
-                if (others.every(o => row.points > o.maxPoints)) {
+                // Exact 1st place is locked only if nobody can even tie this team on points.
+                // Strict ">" avoids unsafe tiebreaker assumptions.
+                const isLockedFirst = others.every(o => row.points > o.maxPoints);
+
+                if (isLockedFirst) {
                     certified.push({
                         group: groupLetter,
                         place: 1,
                         placeLabel: 'Erster',
                         team: row.team,
                         slot: 'Erster Gruppe ' + groupLetter,
-                        reason: 'mathematisch sicher'
+                        reason: '1. Platz Platz mathematisch sicher'
                     });
                     return;
                 }
 
-                // Guaranteed runner-up by points only:
-                // exactly one team is unavoidably above this team,
-                // and this team is unavoidably above all remaining teams.
-                const guaranteedAbove = others.filter(o => o.points > row.maxPoints);
-                const remainingBelow = others.filter(o => !guaranteedAbove.includes(o));
+                // Exact 2nd place is locked only if:
+                // 1) exactly one team is mathematically unreachable above this team
+                // 2) every other team below cannot even tie this team on points
+                // This means the team is not merely qualified, but locked into 2nd.
+                const mathematicallyAbove = others.filter(o => o.points > row.maxPoints);
+                const otherContenders = others.filter(o => !mathematicallyAbove.includes(o));
 
-                if (
-                    guaranteedAbove.length === 1 &&
-                    remainingBelow.every(o => o.team === row.team || row.points > o.maxPoints)
-                ) {
+                const isLockedSecond =
+                    mathematicallyAbove.length === 1 &&
+                    otherContenders.every(o => row.points > o.maxPoints);
+
+                if (isLockedSecond) {
                     certified.push({
                         group: groupLetter,
                         place: 2,
                         placeLabel: 'Zweiter',
                         team: row.team,
                         slot: 'Zweiter Gruppe ' + groupLetter,
-                        reason: 'mathematisch sicher'
+                        reason: '2. Platz Platz mathematisch sicher'
                     });
                 }
             });
 
             return certified;
         }
+
 
         function getCalculatedCertifiedQualifiedTeams() {
             const all = [];
