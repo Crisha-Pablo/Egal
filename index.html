@@ -1148,6 +1148,95 @@
             border: 1px solid rgba(255,69,58,0.30);
             background: rgba(255,69,58,0.075);
         }
+
+        /* PRIZE WARNING COUNTER */
+        .prize-warning-card {
+            border-radius: 20px;
+            border: 1px solid rgba(255,204,0,0.34);
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255,204,0,0.16), transparent 38%),
+                rgba(255,204,0,0.055);
+            padding: 13px 14px;
+            margin: -2px 0 14px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+        }
+
+        .prize-warning-card.urgent {
+            border-color: rgba(255,69,58,0.42);
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255,69,58,0.16), transparent 38%),
+                rgba(255,69,58,0.055);
+        }
+
+        .prize-warning-title {
+            color: var(--text-main);
+            font-size: 0.88rem;
+            font-weight: 950;
+            margin-bottom: 5px;
+        }
+
+        .prize-warning-text {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 780;
+            line-height: 1.35;
+        }
+
+        .prize-warning-counter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 4px 8px;
+            margin-left: 6px;
+            color: var(--ger-gold);
+            border: 1px solid rgba(255,204,0,0.27);
+            background: rgba(255,204,0,0.08);
+            font-size: 0.68rem;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .prize-warning-card.urgent .prize-warning-counter {
+            color: #ff453a;
+            border-color: rgba(255,69,58,0.28);
+            background: rgba(255,69,58,0.08);
+        }
+
+
+        /* CLOUD SYNC STATUS */
+        .sync-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 5px 9px;
+            margin-top: 8px;
+            font-size: 0.68rem;
+            font-weight: 950;
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.045);
+        }
+
+        .sync-status-pill.ok {
+            color: #34c759;
+            border-color: rgba(52,199,89,0.25);
+            background: rgba(52,199,89,0.075);
+        }
+
+        .sync-status-pill.wait {
+            color: var(--ger-gold);
+            border-color: rgba(255,204,0,0.25);
+            background: rgba(255,204,0,0.075);
+        }
+
+        .sync-status-pill.err {
+            color: #ff453a;
+            border-color: rgba(255,69,58,0.30);
+            background: rgba(255,69,58,0.075);
+        }
+
 </style>
 </head>
 <body>
@@ -1189,7 +1278,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: locked-placement-only-v4 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: hard-cloud-sync-v6 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -1207,7 +1296,7 @@
             </div>
             <div class="live-banner" id="live-banner">
                 <div><span class="pulse-dot"></span><span id="banner-status">Nächstes Spiel:</span></div>
-                <div id="banner-text">Lädt...</div>
+                <div><div id="banner-text">Lädt...</div><div class="sync-status-pill wait" id="sync-status-pill">● Cloud-Sync wartet</div></div>
             </div>
         </header>
 
@@ -1373,17 +1462,41 @@
 
         window.cloudSaveEngine = async (matchesArray, bonusArray, prizeObject) => {
             try {
-                await setDoc(docRef, { matches: matchesArray, bonus: bonusArray, prize: prizeObject || window.prizeState || null, lastUpdate: new Date().toISOString() });
-            } catch (e) { console.error("Cloud Error Syncing:", e); }
+                await setDoc(docRef, {
+                    matches: matchesArray,
+                    bonus: bonusArray,
+                    prize: prizeObject || window.prizeState || null,
+                    lastUpdate: new Date().toISOString()
+                }, { merge: true });
+
+                window.cloudWriteOk = true;
+                window.lastCloudWriteAt = new Date().toISOString();
+                if (window.updateCloudSyncStatusUI) window.updateCloudSyncStatusUI('ok', '● Cloud gespeichert');
+            } catch (e) {
+                console.error("Cloud Error Syncing:", e);
+                if (window.updateCloudSyncStatusUI) window.updateCloudSyncStatusUI('err', '● Cloud-Fehler');
+            }
         };
+
+        function deliverCloudSnapshotWhenReady(cloudData) {
+            const tryDeliver = () => {
+                if (window.executeLiveSyncFromCloud) {
+                    window.executeLiveSyncFromCloud(cloudData.matches || [], cloudData.bonus || [], cloudData.prize || null, cloudData.lastUpdate || null);
+                } else {
+                    setTimeout(tryDeliver, 120);
+                }
+            };
+            tryDeliver();
+        }
 
         onSnapshot(docRef, (snapshot) => {
             if (snapshot.exists()) {
                 const cloudData = snapshot.data();
-                if (cloudData.matches && cloudData.bonus && window.executeLiveSyncFromCloud) {
-                    window.executeLiveSyncFromCloud(cloudData.matches, cloudData.bonus, cloudData.prize || null);
-                }
+                deliverCloudSnapshotWhenReady(cloudData);
             }
+        }, (error) => {
+            console.error("Cloud Snapshot Error:", error);
+            if (window.updateCloudSyncStatusUI) window.updateCloudSyncStatusUI('err', '● Cloud-Fehler');
         });
     </script>
 
@@ -1392,6 +1505,9 @@
         window.players = ['Crisha', 'Eddy', 'Nicola', 'Jana', 'Gemini'];
         window.currentUser = null;
         window.chartInstance = null;
+        window.cloudDataLoaded = false;
+        window.lastCloudUpdate = null;
+        window.pendingPrizeWarningIncrement = false;
         window.matches = [{"id":1,"r":"Gruppe A","date":"2026-06-11T21:00:00+02:00","date_str":"11. Juni 2026 - 21:00","h":"Mexiko","a":"Südafrika","stadium":"Mexiko-Stadt-Stadion","real":[null,null],"tips":{"Crisha":[1,0],"Eddy":[2,1],"Nicola":[3,1],"Gemini":[3,1],"Jana":[null,null]}},{"id":2,"r":"Gruppe A","date":"2026-06-12T04:00:00+02:00","date_str":"12. Juni 2026 - 04:00","h":"Republik Korea","a":"Tschechien","stadium":"Guadalajara-Stadion","real":[null,null],"tips":{"Crisha":[1,2],"Eddy":[1,2],"Nicola":[0,0],"Gemini":[1,1],"Jana":[null,null]}},{"id":3,"r":"Gruppe B","date":"2026-06-12T21:00:00+02:00","date_str":"12. Juni 2026 - 21:00","h":"Kanada","a":"Bosnien und Herzegowina","stadium":"Toronto-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[1,2],"Nicola":[1,1],"Gemini":[2,0],"Jana":[null,null]}},{"id":4,"r":"Gruppe D","date":"2026-06-13T03:00:00+02:00","date_str":"13. Juni 2026 - 03:00","h":"USA","a":"Paraguay","stadium":"Los-Angeles-Stadion","real":[null,null],"tips":{"Crisha":[1,0],"Eddy":[1,1],"Nicola":[1,2],"Gemini":[2,1],"Jana":[null,null]}},{"id":8,"r":"Gruppe B","date":"2026-06-13T21:00:00+02:00","date_str":"13. Juni 2026 - 21:00","h":"Katar","a":"Schweiz","stadium":"San-Francisco-Bay-Area-Stadion","real":[null,null],"tips":{"Crisha":[0,1],"Eddy":[0,2],"Nicola":[1,2],"Gemini":[0,2],"Jana":[null,null]}},{"id":7,"r":"Gruppe C","date":"2026-06-14T00:00:00+02:00","date_str":"14. Juni 2026 - 00:00","h":"Brasilien","a":"Marokko","stadium":"New-York-New-Jersey-Stadion","real":[null,null],"tips":{"Crisha":[3,1],"Eddy":[1,1],"Nicola":[2,0],"Gemini":[3,0],"Jana":[null,null]}},{"id":5,"r":"Gruppe C","date":"2026-06-14T03:00:00+02:00","date_str":"14. Juni 2026 - 03:00","h":"Haiti","a":"Schottland","stadium":"Boston-Stadion","real":[null,null],"tips":{"Crisha":[0,2],"Eddy":[0,2],"Nicola":[0,2],"Gemini":[0,3],"Jana":[null,null]}},{"id":6,"r":"Gruppe D","date":"2026-06-14T06:00:00+02:00","date_str":"14. Juni 2026 - 06:00","h":"Australien","a":"Türkei","stadium":"BC Place Vancouver","real":[null,null],"tips":{"Crisha":[1,2],"Eddy":[1,3],"Nicola":[1,2],"Gemini":[1,2],"Jana":[null,null]}},{"id":10,"r":"Gruppe E","date":"2026-06-14T19:00:00+02:00","date_str":"14. Juni 2026 - 19:00","h":"Deutschland","a":"Curaçao","stadium":"Houston-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[4,1],"Nicola":[2,0],"Gemini":[3,0],"Jana":[null,null]}},{"id":11,"r":"Gruppe F","date":"2026-06-14T22:00:00+02:00","date_str":"14. Juni 2026 - 22:00","h":"Niederlande","a":"Japan","stadium":"Dallas-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[2,1],"Nicola":[2,0],"Gemini":[2,1],"Jana":[null,null]}},{"id":9,"r":"Gruppe E","date":"2026-06-15T01:00:00+02:00","date_str":"15. Juni 2026 - 01:00","h":"Elfenbeinküste","a":"Ecuador","stadium":"Philadelphia-Stadion","real":[null,null],"tips":{"Crisha":[0,2],"Eddy":[1,2],"Nicola":[0,2],"Gemini":[1,2],"Jana":[null,null]}},{"id":12,"r":"Gruppe F","date":"2026-06-15T04:00:00+02:00","date_str":"15. Juni 2026 - 04:00","h":"Schweden","a":"Tunesien","stadium":"Monterrey-Stadion","real":[null,null],"tips":{"Crisha":[1,0],"Eddy":[2,0],"Nicola":[2,0],"Gemini":[2,0],"Jana":[null,null]}},{"id":14,"r":"Gruppe H","date":"2026-06-15T18:00:00+02:00","date_str":"15. Juni 2026 - 18:00","h":"Spanien","a":"Kap Verde","stadium":"Atlanta-Stadion","real":[null,null],"tips":{"Crisha":[3,0],"Eddy":[4,0],"Nicola":[2,0],"Gemini":[4,0],"Jana":[null,null]}},{"id":16,"r":"Gruppe G","date":"2026-06-15T21:00:00+02:00","date_str":"15. Juni 2026 - 21:00","h":"Belgien","a":"Ägypten","stadium":"Seattle-Stadion","real":[null,null],"tips":{"Crisha":[2,1],"Eddy":[2,1],"Nicola":[0,0],"Gemini":[2,0],"Jana":[null,null]}},{"id":13,"r":"Gruppe H","date":"2026-06-16T00:00:00+02:00","date_str":"16. Juni 2026 - 00:00","h":"Saudi Arabien","a":"Uruguay","stadium":"Miami-Stadion","real":[null,null],"tips":{"Crisha":[0,2],"Eddy":[0,2],"Nicola":[0,2],"Gemini":[0,3],"Jana":[null,null]}},{"id":15,"r":"Gruppe G","date":"2026-06-16T03:00:00+02:00","date_str":"16. Juni 2026 - 03:00","h":"IR Iran","a":"Neuseeland","stadium":"Los-Angeles-Stadion","real":[null,null],"tips":{"Crisha":[0,1],"Eddy":[1,0],"Nicola":[0,0],"Gemini":[1,1],"Jana":[null,null]}},{"id":17,"r":"Gruppe I","date":"2026-06-16T21:00:00+02:00","date_str":"16. Juni 2026 - 21:00","h":"Frankreich","a":"Senegal","stadium":"New-York-New-Jersey-Stadion","real":[null,null],"tips":{"Crisha":[4,0],"Eddy":[2,0],"Nicola":[3,0],"Gemini":[3,0],"Jana":[null,null]}},{"id":18,"r":"Gruppe I","date":"2026-06-17T00:00:00+02:00","date_str":"17. Juni 2026 - 00:00","h":"Irak","a":"Norwegen","stadium":"Boston-Stadion","real":[null,null],"tips":{"Crisha":[0,2],"Eddy":[1,3],"Nicola":[0,1],"Gemini":[0,2],"Jana":[null,null]}},{"id":19,"r":"Gruppe J","date":"2026-06-17T03:00:00+02:00","date_str":"17. Juni 2026 - 03:00","h":"Argentinien","a":"Algerien","stadium":"Kansas-City-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[3,0],"Nicola":[2,0],"Gemini":[3,0],"Jana":[null,null]}},{"id":20,"r":"Gruppe J","date":"2026-06-17T06:00:00+02:00","date_str":"17. Juni 2026 - 06:00","h":"Österreich","a":"Jordanien","stadium":"San-Francisco-Bay-Area-Stadion","real":[null,null],"tips":{"Crisha":[1,0],"Eddy":[3,0],"Nicola":[1,0],"Gemini":[2,0],"Jana":[null,null]}},{"id":23,"r":"Gruppe K","date":"2026-06-17T19:00:00+02:00","date_str":"17. Juni 2026 - 19:00","h":"Portugal","a":"DR Kongo","stadium":"Houston-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[3,0],"Nicola":[2,0],"Gemini":[3,0],"Jana":[null,null]}},{"id":22,"r":"Gruppe L","date":"2026-06-17T22:00:00+02:00","date_str":"17. Juni 2026 - 22:00","h":"England","a":"Kroatien","stadium":"Dallas-Stadion","real":[null,null],"tips":{"Crisha":[3,2],"Eddy":[2,1],"Nicola":[2,1],"Gemini":[2,1],"Jana":[null,null]}},{"id":21,"r":"Gruppe L","date":"2026-06-18T01:00:00+02:00","date_str":"18. Juni 2026 - 01:00","h":"Ghana","a":"Panama","stadium":"Toronto-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[3,1],"Nicola":[0,0],"Gemini":[1,0],"Jana":[null,null]}},{"id":24,"r":"Gruppe K","date":"2026-06-18T04:00:00+02:00","date_str":"18. Juni 2026 - 04:00","h":"Usbekistan","a":"Kolumbien","stadium":"Mexiko-Stadt-Stadion","real":[null,null],"tips":{"Crisha":[0,2],"Eddy":[1,2],"Nicola":[0,0],"Gemini":[0,2],"Jana":[null,null]}},{"id":25,"r":"Gruppe A","date":"2026-06-18T18:00:00+02:00","date_str":"18. Juni 2026 - 18:00","h":"Tschechien","a":"Südafrika","stadium":"Atlanta-Stadion","real":[null,null],"tips":{"Crisha":[1,0],"Eddy":[2,0],"Nicola":[0,1],"Gemini":[2,0],"Jana":[null,null]}},{"id":26,"r":"Gruppe B","date":"2026-06-18T21:00:00+02:00","date_str":"18. Juni 2026 - 21:00","h":"Schweiz","a":"Bosnien und Herzegowina","stadium":"Los-Angeles-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[1,0],"Nicola":[2,0],"Gemini":[2,0],"Jana":[null,null]}},{"id":27,"r":"Gruppe B","date":"2026-06-19T00:00:00+02:00","date_str":"19. Juni 2026 - 00:00","h":"Kanada","a":"Katar","stadium":"BC Place Vancouver","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[1,1],"Nicola":[1,0],"Gemini":[2,1],"Jana":[null,null]}},{"id":28,"r":"Gruppe A","date":"2026-06-19T03:00:00+02:00","date_str":"19. Juni 2026 - 03:00","h":"Mexiko","a":"Republik Korea","stadium":"Guadalajara-Stadion","real":[null,null],"tips":{"Crisha":[2,1],"Eddy":[2,1],"Nicola":[1,0],"Gemini":[2,0],"Jana":[null,null]}},{"id":31,"r":"Gruppe D","date":"2026-06-19T05:00:00+02:00","date_str":"19. Juni 2026 - 05:00","h":"Türkei","a":"Paraguay","stadium":"San-Francisco-Bay-Area-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[2,1],"Nicola":[1,2],"Gemini":[2,0],"Jana":[null,null]}},{"id":32,"r":"Gruppe D","date":"2026-06-19T21:00:00+02:00","date_str":"19. Juni 2026 - 21:00","h":"USA","a":"Australien","stadium":"Seattle-Stadion","real":[null,null],"tips":{"Crisha":[2,2],"Eddy":[2,1],"Nicola":[1,1],"Gemini":[2,1],"Jana":[null,null]}},{"id":30,"r":"Gruppe C","date":"2026-06-20T00:00:00+02:00","date_str":"20. Juni 2026 - 00:00","h":"Schottland","a":"Marokko","stadium":"Boston-Stadion","real":[null,null],"tips":{"Crisha":[2,1],"Eddy":[1,2],"Nicola":[1,0],"Gemini":[1,1],"Jana":[null,null]}},{"id":29,"r":"Gruppe C","date":"2026-06-20T02:30:00+02:00","date_str":"20. Juni 2026 - 02:30","h":"Brasilien","a":"Haiti","stadium":"Philadelphia-Stadion","real":[null,null],"tips":{"Crisha":[3,0],"Eddy":[5,1],"Nicola":[3,0],"Gemini":[4,0],"Jana":[null,null]}},{"id":35,"r":"Gruppe F","date":"2026-06-20T19:00:00+02:00","date_str":"20. Juni 2026 - 19:00","h":"Niederlande","a":"Schweden","stadium":"Houston-Stadion","real":[null,null],"tips":{"Crisha":[2,2],"Eddy":[2,1],"Nicola":[2,0],"Gemini":[1,1],"Jana":[null,null]}},{"id":33,"r":"Gruppe E","date":"2026-06-20T22:00:00+02:00","date_str":"20. Juni 2026 - 22:00","h":"Deutschland","a":"Elfenbeinküste","stadium":"Toronto-Stadion","real":[null,null],"tips":{"Crisha":[3,0],"Eddy":[2,0],"Nicola":[2,0],"Gemini":[2,1],"Jana":[null,null]}},{"id":34,"r":"Gruppe E","date":"2026-06-21T02:00:00+02:00","date_str":"21. Juni 2026 - 02:00","h":"Ecuador","a":"Curaçao","stadium":"Kansas-City-Stadion","real":[null,null],"tips":{"Crisha":[1,0],"Eddy":[3,1],"Nicola":[0,0],"Gemini":[2,0],"Jana":[null,null]}},{"id":36,"r":"Gruppe F","date":"2026-06-21T06:00:00+02:00","date_str":"21. Juni 2026 - 06:00","h":"Tunesien","a":"Japan","stadium":"Monterrey-Stadion","real":[null,null],"tips":{"Crisha":[1,0],"Eddy":[1,2],"Nicola":[0,0],"Gemini":[1,2],"Jana":[null,null]}},{"id":38,"r":"Gruppe H","date":"2026-06-21T18:00:00+02:00","date_str":"21. Juni 2026 - 18:00","h":"Spanien","a":"Saudi-Arabien","stadium":"Atlanta-Stadion","real":[null,null],"tips":{"Crisha":[3,0],"Eddy":[3,0],"Nicola":[3,0],"Gemini":[4,0],"Jana":[null,null]}},{"id":39,"r":"Gruppe G","date":"2026-06-21T21:00:00+02:00","date_str":"21. Juni 2026 - 21:00","h":"Belgien","a":"IR Iran","stadium":"Los-Angeles-Stadion","real":[null,null],"tips":{"Crisha":[1,0],"Eddy":[1,1],"Nicola":[0,1],"Gemini":[2,0],"Jana":[null,null]}},{"id":37,"r":"Gruppe H","date":"2026-06-22T00:00:00+02:00","date_str":"22. Juni 2026 - 00:00","h":"Uruguay","a":"Kap Verde","stadium":"Miami-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[4,1],"Nicola":[1,0],"Gemini":[3,0],"Jana":[null,null]}},{"id":40,"r":"Gruppe G","date":"2026-06-22T03:00:00+02:00","date_str":"22. Juni 2026 - 03:00","h":"Neuseeland","a":"Ägypten","stadium":"BC Place Vancouver","real":[null,null],"tips":{"Crisha":[0,0],"Eddy":[2,3],"Nicola":[0,0],"Gemini":[1,2],"Jana":[null,null]}},{"id":43,"r":"Gruppe J","date":"2026-06-22T19:00:00+02:00","date_str":"22. Juni 2026 - 19:00","h":"Argentinien","a":"Österreich","stadium":"Dallas-Stadion","real":[null,null],"tips":{"Crisha":[2,1],"Eddy":[2,1],"Nicola":[2,0],"Gemini":[2,0],"Jana":[null,null]}},{"id":42,"r":"Gruppe I","date":"2026-06-22T23:00:00+02:00","date_str":"22. Juni 2026 - 23:00","h":"Frankreich","a":"Irak","stadium":"Philadelphia-Stadion","real":[null,null],"tips":{"Crisha":[3,0],"Eddy":[2,0],"Nicola":[3,0],"Gemini":[4,0],"Jana":[null,null]}},{"id":41,"r":"Gruppe I","date":"2026-06-23T02:00:00+02:00","date_str":"23. Juni 2026 - 02:00","h":"Norwegen","a":"Senegal","stadium":"New-York-New-Jersey-Stadion","real":[null,null],"tips":{"Crisha":[2,1],"Eddy":[2,2],"Nicola":[2,0],"Gemini":[2,1],"Jana":[null,null]}},{"id":44,"r":"Gruppe J","date":"2026-06-23T05:00:00+02:00","date_str":"23. Juni 2026 - 05:00","h":"Jordanien","a":"Algerien","stadium":"San-Francisco-Bay-Area-Stadion","real":[null,null],"tips":{"Crisha":[0,1],"Eddy":[1,2],"Nicola":[0,1],"Gemini":[0,2],"Jana":[null,null]}},{"id":47,"r":"Gruppe K","date":"2026-06-23T19:00:00+02:00","date_str":"23. Juni 2026 - 19:00","h":"Portugal","a":"Usbekistan","stadium":"Houston-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[3,1],"Nicola":[2,0],"Gemini":[2,0],"Jana":[null,null]}},{"id":45,"r":"Gruppe L","date":"2026-06-23T22:00:00+02:00","date_str":"23. Juni 2026 - 22:00","h":"England","a":"Ghana","stadium":"Boston-Stadion","real":[null,null],"tips":{"Crisha":[3,1],"Eddy":[2,0],"Nicola":[2,0],"Gemini":[3,1],"Jana":[null,null]}},{"id":46,"r":"Gruppe L","date":"2026-06-24T01:00:00+02:00","date_str":"24. Juni 2026 - 01:00","h":"Panama","a":"Kroatien","stadium":"Toronto-Stadion","real":[null,null],"tips":{"Crisha":[0,1],"Eddy":[1,3],"Nicola":[0,2],"Gemini":[0,2],"Jana":[null,null]}},{"id":48,"r":"Gruppe K","date":"2026-06-24T04:00:00+02:00","date_str":"24. Juni 2026 - 04:00","h":"Kolumbien","a":"DR Kongo","stadium":"Guadalajara-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[3,1],"Nicola":[1,1],"Gemini":[2,0],"Jana":[null,null]}},{"id":51,"r":"Gruppe B","date":"2026-06-24T21:00:00+02:00","date_str":"24. Juni 2026 - 21:00","h":"Schweiz","a":"Kanada","stadium":"BC Place Vancouver","real":[null,null],"tips":{"Crisha":[3,1],"Eddy":[3,1],"Nicola":[2,0],"Gemini":[2,1],"Jana":[null,null]}},{"id":52,"r":"Gruppe B","date":"2026-06-24T21:00:00+02:00","date_str":"24. Juni 2026 - 21:00","h":"Bosnien und Herzegowina","a":"Katar","stadium":"Seattle-Stadion","real":[null,null],"tips":{"Crisha":[2,0],"Eddy":[2,0],"Nicola":[0,0],"Gemini":[1,1],"Jana":[null,null]}},{"id":49,"r":"Gruppe C","date":"2026-06-25T00:00:00+02:00","date_str":"25. Juni 2026 - 00:00","h":"Schottland","a":"Brasilien","stadium":"Miami-Stadion","real":[null,null],"tips":{"Crisha":[1,3],"Eddy":[1,3],"Nicola":[0,2],"Gemini":[1,3],"Jana":[null,null]}},{"id":50,"r":"Gruppe C","date":"2026-06-25T00:00:00+02:00","date_str":"25. Juni 2026 - 00:00","h":"Marokko","a":"Haiti","stadium":"Atlanta-Stadion","real":[null,null],"tips":{"Crisha":[1,0],"Eddy":[3,0],"Nicola":[0,0],"Gemini":[2,0],"Jana":[null,null]}},{"id":53,"r":"Gruppe A","date":"2026-06-25T03:00:00+02:00","date_str":"25. Juni 2026 - 03:00","h":"Tschechien","a":"Mexiko","stadium":"Mexiko-Stadt-Stadion","real":[null,null],"tips":{"Crisha":[1,1],"Eddy":[1,1],"Nicola":[0,2],"Gemini":[1,2],"Jana":[null,null]}},{"id":54,"r":"Gruppe A","date":"2026-06-25T03:00:00+02:00","date_str":"25. Juni 2026 - 03:00","h":"Südafrika","a":"Republik Korea","stadium":"Monterrey-Stadion","real":[null,null],"tips":{"Crisha":[1,0],"Eddy":[1,2],"Nicola":[0,1],"Gemini":[1,2],"Jana":[null,null]}},{"id":55,"r":"Gruppe E","date":"2026-06-25T22:00:00+02:00","date_str":"25. Juni 2026 - 22:00","h":"Curaçao","a":"Elfenbeinküste","stadium":"Philadelphia-Stadion","real":[null,null],"tips":{"Crisha":[1,0],"Eddy":[0,2],"Nicola":[0,0],"Gemini":[0,2],"Jana":[null,null]}},{"id":56,"r":"Gruppe E","date":"2026-06-25T22:00:00+02:00","date_str":"25. Juni 2026 - 22:00","h":"Ecuador","a":"Deutschland","stadium":"New-York-New-Jersey-Stadion","real":[null,null],"tips":{"Crisha":[0,2],"Eddy":[1,2],"Nicola":[2,2],"Gemini":[1,1],"Jana":[null,null]}},{"id":57,"r":"Gruppe F","date":"2026-06-26T01:00:00+02:00","date_str":"26. Juni 2026 - 01:00","h":"Japan","a":"Schweden","stadium":"Dallas-Stadion","real":[null,null],"tips":{"Crisha":[1,2],"Eddy":[1,2],"Nicola":[1,2],"Gemini":[1,2],"Jana":[null,null]}},{"id":58,"r":"Gruppe F","date":"2026-06-26T01:00:00+02:00","date_str":"26. Juni 2026 - 01:00","h":"Tunesien","a":"Niederlande","stadium":"Kansas-City-Stadion","real":[null,null],"tips":{"Crisha":[0,2],"Eddy":[0,2],"Nicola":[0,2],"Gemini":[0,3],"Jana":[null,null]}},{"id":59,"r":"Gruppe D","date":"2026-06-26T04:00:00+02:00","date_str":"26. Juni 2026 - 04:00","h":"Türkei","a":"USA","stadium":"Los-Angeles-Stadion","real":[null,null],"tips":{"Crisha":[2,2],"Eddy":[1,1],"Nicola":[2,0],"Gemini":[1,2],"Jana":[null,null]}},{"id":60,"r":"Gruppe D","date":"2026-06-26T04:00:00+02:00","date_str":"26. Juni 2026 - 04:00","h":"Paraguay","a":"Australien","stadium":"San-Francisco-Bay-Area-Stadion","real":[null,null],"tips":{"Crisha":[1,2],"Eddy":[2,1],"Nicola":[2,0],"Gemini":[1,1],"Jana":[null,null]}},{"id":61,"r":"Gruppe I","date":"2026-06-26T21:00:00+02:00","date_str":"26. Juni 2026 - 21:00","h":"Norwegen","a":"Frankreich","stadium":"Boston-Stadion","real":[null,null],"tips":{"Crisha":[1,3],"Eddy":[1,3],"Nicola":[0,2],"Gemini":[1,2],"Jana":[null,null]}},{"id":62,"r":"Gruppe I","date":"2026-06-26T21:00:00+02:00","date_str":"26. Juni 2026 - 21:00","h":"Senegal","a":"Irak","stadium":"Toronto-Stadion","real":[null,null],"tips":{"Crisha":[1,1],"Eddy":[2,1],"Nicola":[0,0],"Gemini":[2,0],"Jana":[null,null]}},{"id":65,"r":"Gruppe H","date":"2026-06-27T02:00:00+02:00","date_str":"27. Juni 2026 - 02:00","h":"Kap Verde","a":"Saudi-Arabien","stadium":"Houston-Stadion","real":[null,null],"tips":{"Crisha":[0,2],"Eddy":[0,1],"Nicola":[1,1],"Gemini":[0,2],"Jana":[null,null]}},{"id":66,"r":"Gruppe H","date":"2026-06-27T02:00:00+02:00","date_str":"27. Juni 2026 - 02:00","h":"Uruguay","a":"Spanien","stadium":"Guadalajara-Stadion","real":[null,null],"tips":{"Crisha":[1,3],"Eddy":[1,2],"Nicola":[1,3],"Gemini":[1,2],"Jana":[null,null]}},{"id":63,"r":"Gruppe G","date":"2026-06-27T05:00:00+02:00","date_str":"27. Juni 2026 - 05:00","h":"Ägypten","a":"IR Iran","stadium":"Seattle-Stadion","real":[null,null],"tips":{"Crisha":[2,1],"Eddy":[1,1],"Nicola":[0,1],"Gemini":[1,1],"Jana":[null,null]}},{"id":64,"r":"Gruppe G","date":"2026-06-27T05:00:00+02:00","date_str":"27. Juni 2026 - 05:00","h":"Neuseeland","a":"Belgien","stadium":"BC Place Vancouver","real":[null,null],"tips":{"Crisha":[0,2],"Eddy":[1,2],"Nicola":[0,1],"Gemini":[0,3],"Jana":[null,null]}},{"id":67,"r":"Gruppe L","date":"2026-06-27T23:00:00+02:00","date_str":"27. Juni 2026 - 23:00","h":"Panama","a":"England","stadium":"New-York-New-Jersey-Stadion","real":[null,null],"tips":{"Crisha":[0,2],"Eddy":[0,3],"Nicola":[0,2],"Gemini":[0,4],"Jana":[null,null]}},{"id":68,"r":"Gruppe L","date":"2026-06-27T23:00:00+02:00","date_str":"27. Juni 2026 - 23:00","h":"Kroatien","a":"Ghana","stadium":"Philadelphia-Stadion","real":[null,null],"tips":{"Crisha":[2,1],"Eddy":[2,1],"Nicola":[2,0],"Gemini":[2,1],"Jana":[null,null]}},{"id":71,"r":"Gruppe K","date":"2026-06-28T01:30:00+02:00","date_str":"28. Juni 2026 - 01:30","h":"Kolumbien","a":"Portugal","stadium":"Miami-Stadion","real":[null,null],"tips":{"Crisha":[1,3],"Eddy":[0,2],"Nicola":[0,3],"Gemini":[1,2],"Jana":[null,null]}},{"id":72,"r":"Gruppe K","date":"2026-06-28T01:30:00+02:00","date_str":"28. Juni 2026 - 01:30","h":"DR Kongo","a":"Usbekistan","stadium":"Atlanta-Stadion","real":[null,null],"tips":{"Crisha":[0,1],"Eddy":[1,2],"Nicola":[0,0],"Gemini":[1,1],"Jana":[null,null]}},{"id":69,"r":"Gruppe J","date":"2026-06-28T04:00:00+02:00","date_str":"28. Juni 2026 - 04:00","h":"Algerien","a":"Österreich","stadium":"Kansas-City-Stadion","real":[null,null],"tips":{"Crisha":[0,2],"Eddy":[1,3],"Nicola":[0,1],"Gemini":[1,2],"Jana":[null,null]}},{"id":70,"r":"Gruppe J","date":"2026-06-28T04:00:00+02:00","date_str":"28. Juni 2026 - 04:00","h":"Jordanien","a":"Argentinien","stadium":"Dallas-Stadion","real":[null,null],"tips":{"Crisha":[1,2],"Eddy":[0,3],"Nicola":[0,2],"Gemini":[0,3],"Jana":[null,null]}},{"id":73,"r":"1/16-Finale","date":"2026-06-28T21:00:00+02:00","date_str":"28. Juni 2026 - 21:00","h":"Zweiter Gruppe A","a":"Zweiter Gruppe B","stadium":"Los-Angeles-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Zweiter Gruppe A","baseA":"Zweiter Gruppe B"},{"id":76,"r":"1/16-Finale","date":"2026-06-29T19:00:00+02:00","date_str":"29. Juni 2026 - 19:00","h":"Erster Gruppe C","a":"Zweiter Gruppe F","stadium":"Houston-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe C","baseA":"Zweiter Gruppe F"},{"id":74,"r":"1/16-Finale","date":"2026-06-29T22:30:00+02:00","date_str":"29. Juni 2026 - 22:30","h":"Erster Gruppe E","a":"Dritter Gruppe A/B/C/D/F","stadium":"Boston-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe E","baseA":"Dritter Gruppe A/B/C/D/F"},{"id":75,"r":"1/16-Finale","date":"2026-06-30T03:00:00+02:00","date_str":"30. Juni 2026 - 03:00","h":"Erster Gruppe F","a":"Zweiter Gruppe C","stadium":"Monterrey-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe F","baseA":"Zweiter Gruppe C"},{"id":78,"r":"1/16-Finale","date":"2026-06-30T19:00:00+02:00","date_str":"30. Juni 2026 - 19:00","h":"Zweiter Gruppe E","a":"Zweiter Gruppe I","stadium":"Dallas-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Zweiter Gruppe E","baseA":"Zweiter Gruppe I"},{"id":77,"r":"1/16-Finale","date":"2026-06-30T23:00:00+02:00","date_str":"30. Juni 2026 - 23:00","h":"Erster Gruppe I","a":"Dritter Gruppe C/D/F/G/H","stadium":"New-York-New-Jersey-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe I","baseA":"Dritter Gruppe C/D/F/G/H"},{"id":79,"r":"1/16-Finale","date":"2026-07-01T03:00:00+02:00","date_str":"1. Juli 2026 - 03:00","h":"Erster Gruppe A","a":"Dritter Gruppe C/E/F/H/I","stadium":"Mexiko-Stadt-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe A","baseA":"Dritter Gruppe C/E/F/H/I"},{"id":80,"r":"1/16-Finale","date":"2026-07-01T18:00:00+02:00","date_str":"1. Juli 2026 - 18:00","h":"Erster Gruppe L","a":"Dritter Gruppe E/H/I/J/K","stadium":"Atlanta-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe L","baseA":"Dritter Gruppe E/H/I/J/K"},{"id":82,"r":"1/16-Finale","date":"2026-07-01T22:00:00+02:00","date_str":"1. Juli 2026 - 22:00","h":"Erster Gruppe G","a":"Dritter Gruppe A/E/H/I/J","stadium":"Seattle-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe G","baseA":"Dritter Gruppe A/E/H/I/J"},{"id":81,"r":"1/16-Finale","date":"2026-07-02T02:00:00+02:00","date_str":"2. Juli 2026 - 02:00","h":"Erster Gruppe D","a":"Dritter Gruppe B/E/F/I/J","stadium":"San-Francisco-Bay-Area-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe D","baseA":"Dritter Gruppe B/E/F/I/J"},{"id":84,"r":"1/16-Finale","date":"2026-07-02T21:00:00+02:00","date_str":"2. Juli 2026 - 21:00","h":"Erster Gruppe H","a":"Zweiter Gruppe J","stadium":"Los-Angeles-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe H","baseA":"Zweiter Gruppe J"},{"id":83,"r":"1/16-Finale","date":"2026-07-03T01:00:00+02:00","date_str":"3. Juli 2026 - 01:00","h":"Zweiter Gruppe K","a":"Zweiter Gruppe L","stadium":"Toronto-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Zweiter Gruppe K","baseA":"Zweiter Gruppe L"},{"id":85,"r":"1/16-Finale","date":"2026-07-03T05:00:00+02:00","date_str":"3. Juli 2026 - 05:00","h":"Erster Gruppe B","a":"Dritter Gruppe E/F/G/I/J","stadium":"BC Place Vancouver","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe B","baseA":"Dritter Gruppe E/F/G/I/J"},{"id":88,"r":"1/16-Finale","date":"2026-07-03T20:00:00+02:00","date_str":"3. Juli 2026 - 20:00","h":"Zweiter Gruppe D","a":"Zweiter Gruppe G","stadium":"Dallas-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Zweiter Gruppe D","baseA":"Zweiter Gruppe G"},{"id":86,"r":"1/16-Finale","date":"2026-07-04T00:00:00+02:00","date_str":"4. Juli 2026 - 00:00","h":"Erster Gruppe J","a":"Zweiter Gruppe H","stadium":"Miami-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe J","baseA":"Zweiter Gruppe H"},{"id":87,"r":"1/16-Finale","date":"2026-07-04T03:30:00+02:00","date_str":"4. Juli 2026 - 03:30","h":"Erster Gruppe K","a":"Dritter Gruppe D/E/I/J/L","stadium":"Kansas-City-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Erster Gruppe K","baseA":"Dritter Gruppe D/E/I/J/L"},{"id":89,"r":"Achtelfinale","date":"2026-07-04T21:00:00+02:00","date_str":"4. Juli 2026 - 21:00","h":"Sieger Spiel 74","a":"Sieger Spiel 77","stadium":"Philadelphia-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 74","baseA":"Sieger Spiel 77"},{"id":90,"r":"Achtelfinale","date":"2026-07-04T21:00:00+02:00","date_str":"4. Juli 2026 - 21:00","h":"Sieger Spiel 73","a":"Sieger Spiel 75","stadium":"Houston-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 73","baseA":"Sieger Spiel 75"},{"id":91,"r":"Achtelfinale","date":"2026-07-05T21:00:00+02:00","date_str":"5. Juli 2026 - 21:00","h":"Sieger Spiel 76","a":"Sieger Spiel 78","stadium":"New-York-New-Jersey-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 76","baseA":"Sieger Spiel 78"},{"id":92,"r":"Achtelfinale","date":"2026-07-05T21:00:00+02:00","date_str":"5. Juli 2026 - 21:00","h":"Sieger Spiel 79","a":"Sieger Spiel 80","stadium":"Mexiko-Stadt-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 79","baseA":"Sieger Spiel 80"},{"id":93,"r":"Achtelfinale","date":"2026-07-06T21:00:00+02:00","date_str":"6. Juli 2026 - 21:00","h":"Sieger Spiel 83","a":"Sieger Spiel 84","stadium":"Dallas-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 83","baseA":"Sieger Spiel 84"},{"id":94,"r":"Achtelfinale","date":"2026-07-06T21:00:00+02:00","date_str":"6. Juli 2026 - 21:00","h":"Sieger Spiel 81","a":"Sieger Spiel 82","stadium":"Seattle-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 81","baseA":"Sieger Spiel 82"},{"id":95,"r":"Achtelfinale","date":"2026-07-07T21:00:00+02:00","date_str":"7. Juli 2026 - 21:00","h":"Sieger Spiel 86","a":"Sieger Spiel 88","stadium":"Atlanta-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 86","baseA":"Sieger Spiel 88"},{"id":96,"r":"Achtelfinale","date":"2026-07-07T21:00:00+02:00","date_str":"7. Juli 2026 - 21:00","h":"Sieger Spiel 85","a":"Sieger Spiel 87","stadium":"BC Place Vancouver","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 85","baseA":"Sieger Spiel 87"},{"id":97,"r":"Viertelfinale","date":"2026-07-09T21:00:00+02:00","date_str":"9. Juli 2026 - 21:00","h":"Sieger Spiel 89","a":"Sieger Spiel 90","stadium":"Boston-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 89","baseA":"Sieger Spiel 90"},{"id":98,"r":"Viertelfinale","date":"2026-07-10T21:00:00+02:00","date_str":"10. Juli 2026 - 21:00","h":"Sieger Spiel 93","a":"Sieger Spiel 94","stadium":"Los-Angeles-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 93","baseA":"Sieger Spiel 94"},{"id":99,"r":"Viertelfinale","date":"2026-07-11T21:00:00+02:00","date_str":"11. Juli 2026 - 21:00","h":"Sieger Spiel 91","a":"Sieger Spiel 92","stadium":"Miami-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 91","baseA":"Sieger Spiel 92"},{"id":100,"r":"Viertelfinale","date":"2026-07-11T21:00:00+02:00","date_str":"11. Juli 2026 - 21:00","h":"Sieger Spiel 95","a":"Sieger Spiel 96","stadium":"Kansas-City-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 95","baseA":"Sieger Spiel 96"},{"id":101,"r":"Halbfinale","date":"2026-07-14T21:00:00+02:00","date_str":"14. Juli 2026 - 21:00","h":"Sieger Spiel 97","a":"Sieger Spiel 98","stadium":"Dallas-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 97","baseA":"Sieger Spiel 98"},{"id":102,"r":"Halbfinale","date":"2026-07-15T21:00:00+02:00","date_str":"15. Juli 2026 - 21:00","h":"Sieger Spiel 99","a":"Sieger Spiel 100","stadium":"Atlanta-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 99","baseA":"Sieger Spiel 100"},{"id":103,"r":"Platz 3","date":"2026-07-18T21:00:00+02:00","date_str":"18. Juli 2026 - 21:00","h":"Verlierer Spiel 101","a":"Verlierer Spiel 102","stadium":"Miami-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Verlierer Spiel 101","baseA":"Verlierer Spiel 102"},{"id":104,"r":"Finale","date":"2026-07-19T21:00:00+02:00","date_str":"19. Juli 2026 - 21:00","h":"Sieger Spiel 101","a":"Sieger Spiel 102","stadium":"New-York-New-Jersey-Stadion","real":[null,null],"tips":{"Crisha":[null,null],"Eddy":[null,null],"Nicola":[null,null],"Gemini":[null,null],"Jana":[null,null]},"baseH":"Sieger Spiel 101","baseA":"Sieger Spiel 102"}];
         
         // Multi-tier filtering configurations state matrix
@@ -1538,6 +1654,30 @@
         function triggerPasscodeFaultShake() {
             submitPasscodeVerificationChain();
         }
+
+
+        function updateCloudSyncStatusUI(state = 'wait', text = '● Cloud-Sync wartet') {
+            const pill = document.getElementById('sync-status-pill');
+            if (!pill) return;
+
+            pill.classList.remove('ok', 'wait', 'err');
+            pill.classList.add(state);
+            pill.textContent = text;
+        }
+
+        function formatSyncTime(iso) {
+            if (!iso) return '';
+            try {
+                return new Intl.DateTimeFormat('de-DE', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                }).format(new Date(iso));
+            } catch(e) {
+                return '';
+            }
+        }
+
 
         function proceedSystemAccess(user) {
             AudioEngine.save();
@@ -2374,7 +2514,8 @@
                 startAt: nowIso,
                 voteStartAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
                 suggestions: {},
-                votes: {}
+                votes: {},
+                warningCounts: {}
             };
         }
 
@@ -2395,9 +2536,11 @@
             }
             if (!window.prizeState.suggestions || typeof window.prizeState.suggestions !== 'object') window.prizeState.suggestions = {};
             if (!window.prizeState.votes || typeof window.prizeState.votes !== 'object') window.prizeState.votes = {};
+            if (!window.prizeState.warningCounts || typeof window.prizeState.warningCounts !== 'object') window.prizeState.warningCounts = {};
 
             getPrizePlayers().forEach(p => {
                 if (!Array.isArray(window.prizeState.suggestions[p])) window.prizeState.suggestions[p] = [];
+                if (!window.prizeState.warningCounts[p] || typeof window.prizeState.warningCounts[p] !== 'object') window.prizeState.warningCounts[p] = { count: 0, lastSeen: null, lastDeviceId: null };
             });
 
             localStorage.setItem('wm_prize_state_v1', JSON.stringify(window.prizeState));
@@ -2526,6 +2669,9 @@
 
             if (!voteOpen) {
                 if (needsIdeas) {
+                    html += renderMissingPrizeWarningForCurrentUser();
+                }
+                if (needsIdeas) {
                     html += `<button class="prize-action-button" onclick="showPrizeIdeaModal()">Meine 2 Siegerpreis-Ideen eintragen</button>`;
                 } else if (canCurrentUserEditPrizeIdeas()) {
                     html += `<button class="prize-edit-button" onclick="showPrizeIdeaModal()">Meine Siegerpreis-Ideen bearbeiten</button>`;
@@ -2640,6 +2786,9 @@
                 return;
             }
 
+            const warnInfo = getPrizeWarningInfo(window.currentUser);
+            warnInfo.resolvedAt = new Date().toISOString();
+
             window.prizeState.suggestions[window.currentUser] = [
                 { id: `${window.currentUser}_1`, text: v1, author: window.currentUser, createdAt: new Date().toISOString() },
                 { id: `${window.currentUser}_2`, text: v2, author: window.currentUser, createdAt: new Date().toISOString() }
@@ -2651,15 +2800,81 @@
             saveData();
         }
 
+
+        function getPrizeIdeaCountForPlayer(player) {
+            ensurePrizeState();
+            const arr = window.prizeState.suggestions[player] || [];
+            return arr.filter(s => s && String(s.text || '').trim()).length;
+        }
+
+        function getPrizeWarningInfo(player) {
+            ensurePrizeState();
+            if (!window.prizeState.warningCounts[player]) {
+                window.prizeState.warningCounts[player] = { count: 0, lastSeen: null, lastDeviceId: null };
+            }
+            return window.prizeState.warningCounts[player];
+        }
+
+        function incrementPrizeWarningCounterIfNeeded() {
+            ensurePrizeState();
+
+            if (!window.currentUser || !getPrizePlayers().includes(window.currentUser)) return;
+            if (getPrizeIdeaCountForPlayer(window.currentUser) >= 2) return;
+
+            if (!window.cloudDataLoaded) {
+                window.pendingPrizeWarningIncrement = true;
+                updateCloudSyncStatusUI('wait', '● Cloud lädt...');
+                return;
+            }
+
+            const sessionKey = `wm_prize_warning_counted_${window.currentUser}`;
+            if (sessionStorage.getItem(sessionKey) === '1') return;
+
+            const info = getPrizeWarningInfo(window.currentUser);
+            info.count = Number(info.count || 0) + 1;
+            info.lastSeen = new Date().toISOString();
+            info.lastDeviceId = getPrizeDeviceId();
+
+            sessionStorage.setItem(sessionKey, '1');
+            localStorage.setItem('wm_prize_state_v1', JSON.stringify(window.prizeState));
+
+            // wird über das prize-Feld in Firebase gespeichert
+            saveData();
+        }
+
+        function renderMissingPrizeWarningForCurrentUser() {
+            ensurePrizeState();
+
+            if (!window.currentUser || !getPrizePlayers().includes(window.currentUser)) return '';
+            if (getPrizeIdeaCountForPlayer(window.currentUser) >= 2) return '';
+
+            const info = getPrizeWarningInfo(window.currentUser);
+            const count = Number(info.count || 0);
+            const urgent = count >= 3;
+
+            return `
+                <div class="prize-warning-card ${urgent ? 'urgent' : ''}">
+                    <div class="prize-warning-title">
+                        ⚠️ Siegerpreis-Vorschläge fehlen
+                        <span class="prize-warning-counter">${count}/3 Hinweise</span>
+                    </div>
+                    <div class="prize-warning-text">
+                        Du hast noch keine 2 Vorschläge eingetragen. Der Zähler wird in Firebase gespeichert. Du wirst dadurch nicht gesperrt, aber ab 3 Hinweisen ist es als überfällig markiert.
+                    </div>
+                </div>`;
+        }
+
+
         function maybeAskForPrizeIdeasAfterLogin() {
             ensurePrizeState();
 
             if (!window.currentUser || !getPrizePlayers().includes(window.currentUser)) return;
 
-            const arr = window.prizeState.suggestions[window.currentUser] || [];
-            const count = arr.filter(s => s && String(s.text || '').trim()).length;
+            const count = getPrizeIdeaCountForPlayer(window.currentUser);
 
             if (count < 2) {
+                incrementPrizeWarningCounterIfNeeded();
+                renderPrizeVotingPanel();
                 setTimeout(() => showPrizeIdeaModal(), 550);
             }
         }
@@ -3516,7 +3731,11 @@
         }
 
 
-        window.executeLiveSyncFromCloud = function(cloudMatches, cloudBonus, cloudPrize) {
+        window.executeLiveSyncFromCloud = function(cloudMatches, cloudBonus, cloudPrize, cloudLastUpdate) {
+            window.cloudDataLoaded = true;
+            window.lastCloudUpdate = cloudLastUpdate || new Date().toISOString();
+            updateCloudSyncStatusUI('ok', '● Cloud aktuell ' + formatSyncTime(window.lastCloudUpdate));
+
             if(Array.isArray(cloudMatches)) {
                 window.matches.forEach(m => {
                     const f = cloudMatches.find(x => x.id == m.id);
@@ -3546,13 +3765,38 @@
             renderTablesAndTree();
             calculatePreTournamentAnalysis();
             renderPrizeVotingPanel();
-            if (janaBonusWasUpdated && window.cloudSaveEngine) {
+
+            if (window.pendingPrizeWarningIncrement) {
+                window.pendingPrizeWarningIncrement = false;
+                setTimeout(() => incrementPrizeWarningCounterIfNeeded(), 0);
+            }
+
+            if (janaBonusWasUpdated && window.cloudSaveEngine && window.cloudDataLoaded) {
                 setTimeout(() => saveData(), 0);
             }
         };
 
-        function saveData() { ensureAllPlayerData(); applyCalculatedQualifiedTeams(); ensurePrizeState(); localStorage.setItem('wm_data_final_all', JSON.stringify(window.matches)); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); localStorage.setItem('wm_prize_state_v1', JSON.stringify(window.prizeState)); if (window.cloudSaveEngine) window.cloudSaveEngine(window.matches, window.bonus, window.prizeState); }
-        function loadData() { let d = localStorage.getItem('wm_data_final_all'); let b = localStorage.getItem('wm_bonus_final_all'); let ps = localStorage.getItem('wm_prize_state_v1'); if(d){let p=JSON.parse(d); window.matches.forEach(m=>{let f=p.find(x=>x.id==m.id); if(f){m.real=f.real; m.tips=f.tips;}}); } if(b){let pb=JSON.parse(b); window.bonus.forEach(bo=>{let fb=pb.find(x=>x.id==bo.id); if(fb){bo.adminRes=fb.adminRes; bo.tips=fb.tips;}}); } if(ps){try{window.prizeState=JSON.parse(ps);}catch(e){}} ensureAllPlayerData(); ensurePrizeState(); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); }
+        function saveData() {
+            ensureAllPlayerData();
+            applyCalculatedQualifiedTeams();
+            ensurePrizeState();
+
+            localStorage.setItem('wm_data_final_all', JSON.stringify(window.matches));
+            localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus));
+            localStorage.setItem('wm_prize_state_v1', JSON.stringify(window.prizeState));
+
+            if (!window.cloudDataLoaded) {
+                console.warn('Cloud noch nicht geladen – Speicher-Vorgang nur lokal, kein Firebase-Overwrite.');
+                updateCloudSyncStatusUI('wait', '● Cloud lädt...');
+                return;
+            }
+
+            if (window.cloudSaveEngine) {
+                updateCloudSyncStatusUI('wait', '● Cloud speichert...');
+                window.cloudSaveEngine(window.matches, window.bonus, window.prizeState);
+            }
+        }
+        function loadData() { updateCloudSyncStatusUI('wait', '● Cloud lädt...'); let d = localStorage.getItem('wm_data_final_all'); let b = localStorage.getItem('wm_bonus_final_all'); let ps = localStorage.getItem('wm_prize_state_v1'); if(d){let p=JSON.parse(d); window.matches.forEach(m=>{let f=p.find(x=>x.id==m.id); if(f){m.real=f.real; m.tips=f.tips;}}); } if(b){let pb=JSON.parse(b); window.bonus.forEach(bo=>{let fb=pb.find(x=>x.id==bo.id); if(fb){bo.adminRes=fb.adminRes; bo.tips=fb.tips;}}); } if(ps){try{window.prizeState=JSON.parse(ps);}catch(e){}} ensureAllPlayerData(); ensurePrizeState(); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); }
 
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
