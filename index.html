@@ -1290,7 +1290,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: resilient-cloud-sync-v7 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: firestore-rest-fallback-v8 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -1486,7 +1486,11 @@
                 if (window.updateCloudSyncStatusUI) window.updateCloudSyncStatusUI('ok', '● Cloud gespeichert');
             } catch (e) {
                 console.error("Cloud Error Syncing:", e);
-                if (window.updateCloudSyncStatusUI) window.updateCloudSyncStatusUI('err', '● Cloud-Fehler');
+                if (window.restCloudSaveEngine) {
+                    await window.restCloudSaveEngine(matchesArray, bonusArray, prizeObject || window.prizeState || null);
+                } else if (window.updateCloudSyncStatusUI) {
+                    window.updateCloudSyncStatusUI('err', '● Cloud-Fehler');
+                }
             }
         };
 
@@ -1520,6 +1524,9 @@
 
     <script>
         // CORE GLOBAL CONTROLLER ATTACHMENTS
+        window.FIREBASE_PROJECT_ID = 'wm-tippspiel-9dcd9';
+        window.FIREBASE_API_KEY = 'AIzaSyAIG9aP8v_t8UfBlo1BgnHqjns4tYXHWu8';
+        window.FIRESTORE_DOC_PATH = 'wm_daten_2026/tippspiel';
         window.players = ['Crisha', 'Eddy', 'Nicola', 'Jana', 'Gemini'];
         window.currentUser = null;
         window.chartInstance = null;
@@ -1676,6 +1683,136 @@
         }
 
 
+
+        function firestoreValueToJs(v) {
+            if (!v || typeof v !== 'object') return null;
+            if ('stringValue' in v) return v.stringValue;
+            if ('integerValue' in v) return Number(v.integerValue);
+            if ('doubleValue' in v) return Number(v.doubleValue);
+            if ('booleanValue' in v) return Boolean(v.booleanValue);
+            if ('nullValue' in v) return null;
+            if ('timestampValue' in v) return v.timestampValue;
+            if ('arrayValue' in v) {
+                return (v.arrayValue.values || []).map(firestoreValueToJs);
+            }
+            if ('mapValue' in v) {
+                const obj = {};
+                const fields = v.mapValue.fields || {};
+                Object.entries(fields).forEach(([k, val]) => {
+                    obj[k] = firestoreValueToJs(val);
+                });
+                return obj;
+            }
+            return null;
+        }
+
+        function jsToFirestoreValue(value) {
+            if (value === null || typeof value === 'undefined') return { nullValue: null };
+            if (Array.isArray(value)) return { arrayValue: { values: value.map(jsToFirestoreValue) } };
+            if (typeof value === 'boolean') return { booleanValue: value };
+            if (typeof value === 'number') {
+                if (Number.isInteger(value)) return { integerValue: String(value) };
+                return { doubleValue: value };
+            }
+            if (typeof value === 'string') return { stringValue: value };
+            if (typeof value === 'object') {
+                const fields = {};
+                Object.entries(value).forEach(([k, v]) => {
+                    fields[k] = jsToFirestoreValue(v);
+                });
+                return { mapValue: { fields } };
+            }
+            return { stringValue: String(value) };
+        }
+
+        function firestoreDocToJs(doc) {
+            const out = {};
+            const fields = doc && doc.fields ? doc.fields : {};
+            Object.entries(fields).forEach(([k, v]) => {
+                out[k] = firestoreValueToJs(v);
+            });
+            return out;
+        }
+
+        function getFirestoreRestUrl() {
+            return `https://firestore.googleapis.com/v1/projects/${window.FIREBASE_PROJECT_ID}/databases/(default)/documents/${window.FIRESTORE_DOC_PATH}?key=${window.FIREBASE_API_KEY}`;
+        }
+
+        async function restCloudLoadEngine(reason = 'manual') {
+            try {
+                updateCloudSyncStatusUI('wait', '● Cloud Backup lädt...');
+
+                const res = await fetch(getFirestoreRestUrl(), {
+                    method: 'GET',
+                    cache: 'no-store'
+                });
+
+                if (!res.ok) {
+                    const txt = await res.text();
+                    throw new Error(`REST Cloud Read failed ${res.status}: ${txt}`);
+                }
+
+                const doc = await res.json();
+                const data = firestoreDocToJs(doc);
+
+                if (!data || (!Array.isArray(data.matches) && !Array.isArray(data.bonus))) {
+                    throw new Error('REST Cloud Read: Dokument enthält keine gültigen matches/bonus.');
+                }
+
+                window.restCloudOk = true;
+                window.executeLiveSyncFromCloud(
+                    data.matches || [],
+                    data.bonus || [],
+                    data.prize || null,
+                    data.lastUpdate || new Date().toISOString()
+                );
+
+                updateCloudSyncStatusUI('ok', '● Cloud aktuell ' + formatSyncTime(data.lastUpdate || new Date().toISOString()));
+                return true;
+            } catch (e) {
+                console.error('REST Cloud Load failed:', e);
+                updateCloudSyncStatusUI('local', '● Cloud langsam · tippen zum Neuladen');
+                return false;
+            }
+        }
+
+        window.restCloudLoadEngine = restCloudLoadEngine;
+
+        async function restCloudSaveEngine(matchesArray, bonusArray, prizeObject) {
+            try {
+                const body = {
+                    fields: {
+                        matches: jsToFirestoreValue(matchesArray),
+                        bonus: jsToFirestoreValue(bonusArray),
+                        prize: jsToFirestoreValue(prizeObject || window.prizeState || null),
+                        lastUpdate: jsToFirestoreValue(new Date().toISOString())
+                    }
+                };
+
+                const res = await fetch(getFirestoreRestUrl(), {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (!res.ok) {
+                    const txt = await res.text();
+                    throw new Error(`REST Cloud Write failed ${res.status}: ${txt}`);
+                }
+
+                window.restCloudOk = true;
+                updateCloudSyncStatusUI('ok', '● Cloud gespeichert');
+                return true;
+            } catch (e) {
+                console.error('REST Cloud Save failed:', e);
+                updateCloudSyncStatusUI('err', '● Cloud-Speichern fehlgeschlagen');
+                return false;
+            }
+        }
+
+
+        window.restCloudSaveEngine = restCloudSaveEngine;
+
         function updateCloudSyncStatusUI(state = 'wait', text = '● Cloud-Sync wartet') {
             const pill = document.getElementById('sync-status-pill');
             if (!pill) return;
@@ -1690,15 +1827,20 @@
             if (window.cloudLoadTimeoutStarted) return;
             window.cloudLoadTimeoutStarted = true;
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 if (!window.cloudDataLoaded) {
-                    window.cloudFallbackMode = true;
-                    updateCloudSyncStatusUI('local', '● Cloud langsam · tippen zum Neuladen');
+                    updateCloudSyncStatusUI('wait', '● Cloud Backup lädt...');
+                    const ok = await restCloudLoadEngine('timeout');
 
-                    try {
-                        updateUI();
-                    } catch(e) {
-                        console.warn('UI fallback update failed', e);
+                    if (!ok && !window.cloudDataLoaded) {
+                        window.cloudFallbackMode = true;
+                        updateCloudSyncStatusUI('local', '● Cloud langsam · tippen zum Neuladen');
+
+                        try {
+                            updateUI();
+                        } catch(e) {
+                            console.warn('UI fallback update failed', e);
+                        }
                     }
                 }
             }, 4500);
@@ -1718,9 +1860,12 @@
             location.reload();
         }
 
-        function manualCloudReload() {
+        async function manualCloudReload() {
             updateCloudSyncStatusUI('wait', '● Cloud lädt neu...');
-            setTimeout(() => location.reload(), 180);
+            const ok = await restCloudLoadEngine('manual');
+            if (!ok) {
+                setTimeout(() => location.reload(), 250);
+            }
         }
 
 
@@ -3858,12 +4003,17 @@
                 return;
             }
 
+            updateCloudSyncStatusUI('wait', '● Cloud speichert...');
+
             if (window.cloudSaveEngine) {
-                updateCloudSyncStatusUI('wait', '● Cloud speichert...');
                 window.cloudSaveEngine(window.matches, window.bonus, window.prizeState);
+            } else if (window.restCloudSaveEngine) {
+                window.restCloudSaveEngine(window.matches, window.bonus, window.prizeState);
+            } else {
+                updateCloudSyncStatusUI('err', '● Kein Cloud-Modul');
             }
         }
-        function loadData() { updateCloudSyncStatusUI('wait', '● Cloud lädt...'); startCloudLoadTimeout(); let d = localStorage.getItem('wm_data_final_all'); let b = localStorage.getItem('wm_bonus_final_all'); let ps = localStorage.getItem('wm_prize_state_v1'); if(d){let p=JSON.parse(d); window.matches.forEach(m=>{let f=p.find(x=>x.id==m.id); if(f){m.real=f.real; m.tips=f.tips;}}); } if(b){let pb=JSON.parse(b); window.bonus.forEach(bo=>{let fb=pb.find(x=>x.id==bo.id); if(fb){bo.adminRes=fb.adminRes; bo.tips=fb.tips;}}); } if(ps){try{window.prizeState=JSON.parse(ps);}catch(e){}} ensureAllPlayerData(); ensurePrizeState(); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); }
+        function loadData() { updateCloudSyncStatusUI('wait', '● Cloud lädt...'); startCloudLoadTimeout(); setTimeout(() => { if (!window.cloudDataLoaded) restCloudLoadEngine('early-fallback'); }, 1600); let d = localStorage.getItem('wm_data_final_all'); let b = localStorage.getItem('wm_bonus_final_all'); let ps = localStorage.getItem('wm_prize_state_v1'); if(d){let p=JSON.parse(d); window.matches.forEach(m=>{let f=p.find(x=>x.id==m.id); if(f){m.real=f.real; m.tips=f.tips;}}); } if(b){let pb=JSON.parse(b); window.bonus.forEach(bo=>{let fb=pb.find(x=>x.id==bo.id); if(fb){bo.adminRes=fb.adminRes; bo.tips=fb.tips;}}); } if(ps){try{window.prizeState=JSON.parse(ps);}catch(e){}} ensureAllPlayerData(); ensurePrizeState(); localStorage.setItem('wm_bonus_final_all', JSON.stringify(window.bonus)); }
 
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
