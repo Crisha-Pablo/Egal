@@ -1290,7 +1290,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: firestore-rest-fallback-v8 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: official-third-place-solver-v9 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -3273,6 +3273,445 @@
             'Zweiter Gruppe L': { matchId: 83, side: 'a' }
         };
 
+
+        const FIFA_ROUND32_THIRD_COLUMNS = ['1A','1B','1D','1E','1G','1I','1K','1L'];
+
+        const FIFA_ROUND32_THIRD_TARGETS = {
+            '1A': { matchId: 79, side: 'a' },
+            '1B': { matchId: 85, side: 'a' },
+            '1D': { matchId: 81, side: 'a' },
+            '1E': { matchId: 74, side: 'a' },
+            '1G': { matchId: 82, side: 'a' },
+            '1I': { matchId: 77, side: 'a' },
+            '1K': { matchId: 87, side: 'a' },
+            '1L': { matchId: 80, side: 'a' }
+        };
+
+        const FIFA_GROUP_LETTERS = 'ABCDEFGHIJKL'.split('');
+
+        const FIFA_ANNEXE_C_ROWS_1_165_RAW = `1 E J I F H G L K
+2 H G I D J F L K
+3 E J I D H G L K
+4 E J I D H F L K
+5 E G I D J F L K
+6 E G J D H F L K
+7 E G I D H F L K
+8 E G J D H F L I
+9 E G J D H F I K
+10 H G I C J F L K
+11 E J I C H G L K
+12 E J I C H F L K
+13 E G I C J F L K
+14 E G J C H F L K
+15 E G I C H F L K
+16 E G J C H F L I
+17 E G J C H F I K
+18 H G I C J D L K
+19 C J I D H F L K
+20 C G I D J F L K
+21 C G J D H F L K
+22 C G I D H F L K
+23 C G J D H F L I
+24 C G J D H F I K
+25 E J I C H D L K
+26 E G I C J D L K
+27 E G J C H D L K
+28 E G I C H D L K
+29 E G J C H D L I
+30 E G J C H D I K
+31 C J E D I F L K
+32 C J E D H F L K
+33 C E I D H F L K
+34 C J E D H F L I
+35 C J E D H F I K
+36 C G E D J F L K
+37 C G E D I F L K
+38 C G E D J F L I
+39 C G E D J F I K
+40 C G E D H F L K
+41 C G J D H F L E
+42 C G J D H F E K
+43 C G E D H F L I
+44 C G E D H F I K
+45 C G J D H F E I
+46 H J B F I G L K
+47 E J I B H G L K
+48 E J B F I H L K
+49 E J B F I G L K
+50 E J B F H G L K
+51 E G B F I H L K
+52 E J B F H G L I
+53 E J B F H G I K
+54 H J B D I G L K
+55 H J B D I F L K
+56 I G B D J F L K
+57 H G B D J F L K
+58 H G B D I F L K
+59 H G B D J F L I
+60 H G B D J F I K
+61 E J B D I H L K
+62 E J B D I G L K
+63 E J B D H G L K
+64 E G B D I H L K
+65 E J B D H G L I
+66 E J B D H G I K
+67 E J B D I F L K
+68 E J B D H F L K
+69 E I B D H F L K
+70 E J B D H F L I
+71 E J B D H F I K
+72 E G B D J F L K
+73 E G B D I F L K
+74 E G B D J F L I
+75 E G B D J F I K
+76 E G B D H F L K
+77 H G B D J F L E
+78 H G B D J F E K
+79 E G B D H F L I
+80 E G B D H F I K
+81 H G B D J F E I
+82 H J B C I G L K
+83 H J B C I F L K
+84 I G B C J F L K
+85 H G B C J F L K
+86 H G B C I F L K
+87 H G B C J F L I
+88 H G B C J F I K
+89 E J B C I H L K
+90 E J B C I G L K
+91 E J B C H G L K
+92 E G B C I H L K
+93 E J B C H G L I
+94 E J B C H G I K
+95 E J B C I F L K
+96 E J B C H F L K
+97 E I B C H F L K
+98 E J B C H F L I
+99 E J B C H F I K
+100 E G B C J F L K
+101 E G B C I F L K
+102 E G B C J F L I
+103 E G B C J F I K
+104 E G B C H F L K
+105 H G B C J F L E
+106 H G B C J F E K
+107 E G B C H F L I
+108 E G B C H F I K
+109 H G B C J F E I
+110 H J B C I D L K
+111 I G B C J D L K
+112 H G B C J D L K
+113 H G B C I D L K
+114 H G B C J D L I
+115 H G B C J D I K
+116 C J B D I F L K
+117 C J B D H F L K
+118 C I B D H F L K
+119 C J B D H F L I
+120 C J B D H F I K
+121 C G B D J F L K
+122 C G B D I F L K
+123 C G B D J F L I
+124 C G B D J F I K
+125 C G B D H F L K
+126 C G B D H F L J
+127 H G B C J F D K
+128 C G B D H F L I
+129 C G B D H F I K
+130 H G B C J F D I
+131 E J B C I D L K
+132 E J B C H D L K
+133 E I B C H D L K
+134 E J B C H D L I
+135 E J B C H D I K
+136 E G B C J D L K
+137 E G B C I D L K
+138 E G B C J D L I
+139 E G B C J D I K
+140 E G B C H D L K
+141 H G B C J D L E
+142 H G B C J D E K
+143 E G B C H D L I
+144 E G B C H D I K
+145 H G B C J D E I
+146 C J B D E F L K
+147 C E B D I F L K
+148 C J B D E F L I
+149 C J B D E F I K
+150 C E B D H F L K
+151 C J B D H F L E
+152 C J B D H F E K
+153 C E B D H F L I
+154 C E B D H F I K
+155 C J B D H F E I
+156 C G B D E F L K
+157 C G B D J F L E
+158 C G B D J F E K
+159 C G B D E F L I
+160 C G B D E F I K
+161 C G B D J F E I
+162 C G B D H F L E
+163 C G B D H F E K
+164 H G B C J F D E
+165 C G B D H F E I`;
+
+        function buildFifaAnnexeCMap() {
+            const combos = [];
+            const letters = FIFA_GROUP_LETTERS;
+
+            for (let a = 0; a < letters.length; a++) {
+                for (let b = a + 1; b < letters.length; b++) {
+                    for (let c = b + 1; c < letters.length; c++) {
+                        for (let d = c + 1; d < letters.length; d++) {
+                            combos.push([letters[a], letters[b], letters[c], letters[d]].join(''));
+                        }
+                    }
+                }
+            }
+
+            const map = {};
+            FIFA_ANNEXE_C_ROWS_1_165_RAW.split('\n').forEach(line => {
+                const parts = line.trim().split(/\s+/);
+                if (parts.length !== 9) return;
+
+                const option = Number(parts[0]);
+                const omittedKey = combos[option - 1];
+
+                if (!omittedKey) return;
+
+                const values = parts.slice(1);
+                const row = {};
+                FIFA_ROUND32_THIRD_COLUMNS.forEach((col, idx) => {
+                    row[col] = values[idx];
+                });
+
+                map[omittedKey] = row;
+            });
+
+            return map;
+        }
+
+        const FIFA_ANNEXE_C_MAP = buildFifaAnnexeCMap();
+
+        function getOfficialGroupMatches(groupLetter) {
+            return window.matches.filter(m => m.r === 'Gruppe ' + groupLetter);
+        }
+
+        function calculateHeadToHeadStats(groupLetter, teamNames) {
+            const rows = {};
+            teamNames.forEach(t => rows[t] = { team: t, h2hPts: 0, h2hGd: 0, h2hGf: 0 });
+
+            getOfficialGroupMatches(groupLetter).forEach(m => {
+                if (!teamNames.includes(m.h) || !teamNames.includes(m.a)) return;
+                if (!m.real || m.real[0] === null || m.real[1] === null) return;
+
+                const hg = Number(m.real[0]);
+                const ag = Number(m.real[1]);
+
+                rows[m.h].h2hGf += hg;
+                rows[m.h].h2hGd += hg - ag;
+                rows[m.a].h2hGf += ag;
+                rows[m.a].h2hGd += ag - hg;
+
+                if (hg > ag) rows[m.h].h2hPts += 3;
+                else if (hg < ag) rows[m.a].h2hPts += 3;
+                else {
+                    rows[m.h].h2hPts += 1;
+                    rows[m.a].h2hPts += 1;
+                }
+            });
+
+            return rows;
+        }
+
+        function officialGroupSortComplete(groupLetter) {
+            const table = calculateRealGroupTable(groupLetter);
+            if (!table.complete) {
+                return {
+                    complete: false,
+                    rows: sortGroupRowsForCertainty(table.rows).map((r, idx) => ({ ...r, lockedRank: false, officialRank: idx + 1 }))
+                };
+            }
+
+            let output = [];
+            const byPoints = {};
+
+            table.rows.forEach(r => {
+                if (!byPoints[r.points]) byPoints[r.points] = [];
+                byPoints[r.points].push(r);
+            });
+
+            const pointGroups = Object.keys(byPoints).map(Number).sort((a,b) => b-a);
+
+            pointGroups.forEach(points => {
+                const group = byPoints[points];
+
+                if (group.length === 1) {
+                    output.push({ ...group[0], lockedRank: true });
+                    return;
+                }
+
+                const h2h = calculateHeadToHeadStats(groupLetter, group.map(x => x.team));
+
+                const sorted = [...group].sort((a,b) =>
+                    h2h[b.team].h2hPts - h2h[a.team].h2hPts ||
+                    h2h[b.team].h2hGd - h2h[a.team].h2hGd ||
+                    h2h[b.team].h2hGf - h2h[a.team].h2hGf ||
+                    b.gd - a.gd ||
+                    b.gf - a.gf ||
+                    a.team.localeCompare(b.team)
+                );
+
+                sorted.forEach((row, idx) => {
+                    const prev = sorted[idx - 1];
+                    const next = sorted[idx + 1];
+
+                    const sameAsPrev = prev &&
+                        h2h[prev.team].h2hPts === h2h[row.team].h2hPts &&
+                        h2h[prev.team].h2hGd === h2h[row.team].h2hGd &&
+                        h2h[prev.team].h2hGf === h2h[row.team].h2hGf &&
+                        prev.gd === row.gd &&
+                        prev.gf === row.gf;
+
+                    const sameAsNext = next &&
+                        h2h[next.team].h2hPts === h2h[row.team].h2hPts &&
+                        h2h[next.team].h2hGd === h2h[row.team].h2hGd &&
+                        h2h[next.team].h2hGf === h2h[row.team].h2hGf &&
+                        next.gd === row.gd &&
+                        next.gf === row.gf;
+
+                    output.push({
+                        ...row,
+                        lockedRank: !(sameAsPrev || sameAsNext),
+                        h2hPts: h2h[row.team].h2hPts,
+                        h2hGd: h2h[row.team].h2hGd,
+                        h2hGf: h2h[row.team].h2hGf
+                    });
+                });
+            });
+
+            output = output.map((r, idx) => ({ ...r, officialRank: idx + 1 }));
+
+            return { complete: true, rows: output };
+        }
+
+        function getOfficialThirdPlacedRows() {
+            const thirds = [];
+
+            for (const g of FIFA_GROUP_LETTERS) {
+                const ranked = officialGroupSortComplete(g);
+
+                if (!ranked.complete) {
+                    return { ready: false, reason: 'Noch nicht alle Gruppen vollständig.', thirds: [] };
+                }
+
+                const third = ranked.rows[2];
+
+                if (!third || !third.lockedRank) {
+                    return { ready: false, reason: `3. Platz Gruppe ${g} ist noch nicht eindeutig nach App-Daten.`, thirds: [] };
+                }
+
+                thirds.push({
+                    ...third,
+                    group: g,
+                    slot: 'Dritter Gruppe ' + g
+                });
+            }
+
+            return { ready: true, reason: 'Alle dritten Plätze eindeutig.', thirds };
+        }
+
+        function getOfficialBestThirdGroups() {
+            const data = getOfficialThirdPlacedRows();
+            if (!data.ready) return { ready: false, reason: data.reason, topEight: [], omittedKey: null };
+
+            const sorted = [...data.thirds].sort((a,b) =>
+                b.points - a.points ||
+                b.gd - a.gd ||
+                b.gf - a.gf ||
+                a.team.localeCompare(b.team)
+            );
+
+            const eighth = sorted[7];
+            const ninth = sorted[8];
+
+            if (!eighth || !ninth) {
+                return { ready: false, reason: 'Drittplatzierten-Tabelle unvollständig.', topEight: [], omittedKey: null };
+            }
+
+            // FIFA would continue with team conduct and FIFA ranking.
+            // The app has no card/ranking data, so if the boundary is tied on available data, we do not guess.
+            if (
+                eighth.points === ninth.points &&
+                eighth.gd === ninth.gd &&
+                eighth.gf === ninth.gf
+            ) {
+                return {
+                    ready: false,
+                    reason: 'Grenze Platz 8/9 der Drittplatzierten braucht Fair-Play/FIFA-Ranking. Nicht geraten.',
+                    topEight: [],
+                    omittedKey: null
+                };
+            }
+
+            const topEight = sorted.slice(0, 8);
+            const topGroups = new Set(topEight.map(x => x.group));
+            const omittedKey = FIFA_GROUP_LETTERS.filter(g => !topGroups.has(g)).join('');
+
+            return { ready: true, reason: 'Beste acht Drittplatzierte eindeutig.', topEight, omittedKey };
+        }
+
+        function applyOfficialThirdPlacedRound32Slots() {
+            const result = getOfficialBestThirdGroups();
+
+            if (!result.ready) {
+                return result;
+            }
+
+            const tableRow = FIFA_ANNEXE_C_MAP[result.omittedKey];
+
+            if (!tableRow) {
+                return {
+                    ready: false,
+                    reason: `FIFA-Annexe-C-Kombination ${result.omittedKey} noch nicht im lokalen Tabellenauszug hinterlegt.`,
+                    topEight: result.topEight,
+                    omittedKey: result.omittedKey
+                };
+            }
+
+            const teamByGroup = {};
+            result.topEight.forEach(t => {
+                teamByGroup[t.group] = t.team;
+            });
+
+            Object.entries(tableRow).forEach(([winnerSlot, thirdCode]) => {
+                const target = FIFA_ROUND32_THIRD_TARGETS[winnerSlot];
+                if (!target) return;
+
+                const group = thirdCode.replace('3', '');
+                const team = teamByGroup[group];
+                if (!team) return;
+
+                const match = window.matches.find(m => m.id === target.matchId);
+                if (!match) return;
+
+                match[target.side] = team;
+
+                if (!Array.isArray(match.qualifiedSlots)) match.qualifiedSlots = [];
+                match.qualifiedSlots.push({
+                    group,
+                    place: '3.',
+                    team,
+                    slot: `Dritter Gruppe ${group}`,
+                    match_id: target.matchId,
+                    reason: `FIFA Annexe C · Option ${result.omittedKey}`
+                });
+            });
+
+            return result;
+        }
+
+
         function resetKnockoutSlotsToBase() {
             window.matches.forEach(m => {
                 if (m.id >= 73) {
@@ -3388,27 +3827,31 @@
 
             if (!rows.length) return certified;
 
-            // If the group is complete, the final places are fixed.
-            // Then 1st and 2nd can safely be inserted.
+            // If the group is complete, use FIFA-style order:
+            // points, head-to-head, overall GD/GF. If fair play/ranking would be needed,
+            // the rank is not treated as locked.
             if (table.complete) {
-                const sorted = sortGroupRowsForCertainty(rows);
+                const official = officialGroupSortComplete(groupLetter).rows;
 
-                if (sorted[0]) certified.push({
+                const first = official[0];
+                const second = official[1];
+
+                if (first && first.lockedRank) certified.push({
                     group: groupLetter,
                     place: 1,
                     placeLabel: 'Erster',
-                    team: sorted[0].team,
+                    team: first.team,
                     slot: 'Erster Gruppe ' + groupLetter,
-                    reason: 'Platz sicher, Gruppe vollständig'
+                    reason: '1. Platz nach FIFA-Regeln sicher'
                 });
 
-                if (sorted[1]) certified.push({
+                if (second && second.lockedRank) certified.push({
                     group: groupLetter,
                     place: 2,
                     placeLabel: 'Zweiter',
-                    team: sorted[1].team,
+                    team: second.team,
                     slot: 'Zweiter Gruppe ' + groupLetter,
-                    reason: 'Platz sicher, Gruppe vollständig'
+                    reason: '2. Platz nach FIFA-Regeln sicher'
                 });
 
                 return certified;
@@ -3502,6 +3945,18 @@
                     reason: item.reason
                 });
             });
+
+            const thirdResult = applyOfficialThirdPlacedRound32Slots();
+            if (thirdResult && thirdResult.ready) {
+                certified.push({
+                    group: 'Dritte',
+                    place: 3,
+                    placeLabel: 'Beste Drittplatzierte',
+                    team: 'FIFA Annexe C angewendet',
+                    slot: thirdResult.omittedKey,
+                    reason: 'Beste acht Drittplatzierte offiziell zugeordnet'
+                });
+            }
 
             return certified;
         }
