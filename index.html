@@ -1290,7 +1290,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: official-third-place-solver-v9 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: full-tournament-tree-v10 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -3921,6 +3921,120 @@
             );
         }
 
+
+        function isUnresolvedTournamentPlaceholder(name) {
+            const value = String(name || '').trim();
+
+            if (!value) return true;
+
+            return (
+                /^Sieger Spiel \d+$/i.test(value) ||
+                /^Verlierer Spiel \d+$/i.test(value) ||
+                /^Erster Gruppe [A-L]$/i.test(value) ||
+                /^Zweiter Gruppe [A-L]$/i.test(value) ||
+                /^Dritter Gruppe/i.test(value) ||
+                /^TBD/i.test(value)
+            );
+        }
+
+        function getKnockoutResultMeta(match) {
+            if (!match || !match.real || match.real[0] === null || match.real[1] === null) {
+                return { ready: false, winner: null, loser: null, reason: 'kein Ergebnis' };
+            }
+
+            const hGoals = Number(match.real[0]);
+            const aGoals = Number(match.real[1]);
+
+            if (!Number.isFinite(hGoals) || !Number.isFinite(aGoals)) {
+                return { ready: false, winner: null, loser: null, reason: 'ungültiges Ergebnis' };
+            }
+
+            if (hGoals === aGoals) {
+                return { ready: false, winner: null, loser: null, reason: 'KO-Spiel unentschieden' };
+            }
+
+            const winner = hGoals > aGoals ? match.h : match.a;
+            const loser = hGoals > aGoals ? match.a : match.h;
+
+            if (isUnresolvedTournamentPlaceholder(winner) || isUnresolvedTournamentPlaceholder(loser)) {
+                return { ready: false, winner: null, loser: null, reason: 'Teams noch nicht aufgelöst' };
+            }
+
+            return { ready: true, winner, loser, reason: 'aufgelöst' };
+        }
+
+        function resolveTournamentReference(label) {
+            const value = String(label || '').trim();
+            const ref = value.match(/^(Sieger|Verlierer) Spiel (\d+)$/i);
+
+            if (!ref) return null;
+
+            const mode = ref[1].toLowerCase();
+            const sourceId = Number(ref[2]);
+            const sourceMatch = window.matches.find(m => Number(m.id) === sourceId);
+
+            if (!sourceMatch) return null;
+
+            const meta = getKnockoutResultMeta(sourceMatch);
+
+            if (!meta.ready) return null;
+
+            return mode === 'sieger' ? meta.winner : meta.loser;
+        }
+
+        function propagateFullTournamentTree() {
+            let changed = false;
+
+            // Mehrere Durchläufe, damit z. B. 74 -> 89 -> 97 -> 101 -> 104 in einem Refresh sauber weiterläuft.
+            for (let pass = 0; pass < 8; pass++) {
+                window.matches
+                    .filter(m => Number(m.id) >= 89)
+                    .sort((a, b) => Number(a.id) - Number(b.id))
+                    .forEach(match => {
+                        const baseH = match.baseH || match.h;
+                        const baseA = match.baseA || match.a;
+
+                        const resolvedH = resolveTournamentReference(baseH);
+                        const resolvedA = resolveTournamentReference(baseA);
+
+                        if (resolvedH && match.h !== resolvedH) {
+                            match.h = resolvedH;
+                            changed = true;
+                        }
+
+                        if (resolvedA && match.a !== resolvedA) {
+                            match.a = resolvedA;
+                            changed = true;
+                        }
+
+                        if (!Array.isArray(match.qualifiedSlots)) match.qualifiedSlots = [];
+
+                        if (resolvedH && !match.qualifiedSlots.some(q => q.team === resolvedH && q.side === 'h')) {
+                            match.qualifiedSlots.push({
+                                side: 'h',
+                                team: resolvedH,
+                                slot: baseH,
+                                match_id: match.id,
+                                reason: 'Turnierbaum automatisch weitergeführt'
+                            });
+                        }
+
+                        if (resolvedA && !match.qualifiedSlots.some(q => q.team === resolvedA && q.side === 'a')) {
+                            match.qualifiedSlots.push({
+                                side: 'a',
+                                team: resolvedA,
+                                slot: baseA,
+                                match_id: match.id,
+                                reason: 'Turnierbaum automatisch weitergeführt'
+                            });
+                        }
+                    });
+            }
+
+            return changed;
+        }
+
+
         function applyCalculatedQualifiedTeams() {
             resetKnockoutSlotsToBase();
 
@@ -3957,6 +4071,8 @@
                     reason: 'Beste acht Drittplatzierte offiziell zugeordnet'
                 });
             }
+
+            propagateFullTournamentTree();
 
             return certified;
         }
@@ -4123,6 +4239,18 @@
                 target.classList.add('current-scroll-highlight');
                 setTimeout(() => target.classList.remove('current-scroll-highlight'), 1800);
             }, 450);
+        }
+
+
+
+        function getKoResultHint(match) {
+            if (!match || Number(match.id) < 73) return '';
+            if (!match.real || match.real[0] === null || match.real[1] === null) return '';
+            if (Number(match.real[0]) !== Number(match.real[1])) return '';
+
+            return `<div style="margin-top:8px;color:#ff9f0a;font-size:0.72rem;font-weight:850;">
+                ⚠️ KO-Spiel braucht einen Sieger. Bitte Ergebnis so eintragen, dass ein Gewinner erkennbar ist.
+            </div>`;
         }
 
 
@@ -4353,6 +4481,7 @@
         }
 
         function clockTick() {
+            if (typeof applyCalculatedQualifiedTeams === 'function') applyCalculatedQualifiedTeams();
             const now = new Date();
             let nextMatch = null;
             window.matches.forEach(m => {
