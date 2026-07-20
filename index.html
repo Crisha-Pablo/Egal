@@ -1249,6 +1249,132 @@
             background: rgba(255,159,10,0.075);
         }
 
+
+        /* BONUS POINT DISTRIBUTION */
+        .bonus-score-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .bonus-score-card {
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.045);
+            padding: 12px;
+        }
+
+        .bonus-score-name {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 900;
+            margin-bottom: 4px;
+        }
+
+        .bonus-score-value {
+            color: var(--ger-gold);
+            font-size: 1.16rem;
+            font-weight: 950;
+        }
+
+        .bonus-award-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 38px;
+            border-radius: 999px;
+            padding: 4px 8px;
+            margin-left: 8px;
+            font-size: 0.68rem;
+            font-weight: 950;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.055);
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .bonus-award-pill.correct {
+            color: #34c759;
+            border-color: rgba(52,199,89,0.28);
+            background: rgba(52,199,89,0.075);
+        }
+
+        .bonus-award-pill.wrong {
+            color: #ff453a;
+            border-color: rgba(255,69,58,0.24);
+            background: rgba(255,69,58,0.06);
+        }
+
+        .bonus-award-pill.open {
+            color: var(--text-muted);
+        }
+
+        .bonus-result-status {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 800;
+            margin-top: 6px;
+        }
+
+        .bonus-auto-tag {
+            display: inline-flex;
+            margin-left: 7px;
+            padding: 3px 7px;
+            border-radius: 999px;
+            color: var(--ger-gold);
+            border: 1px solid rgba(255,204,0,0.24);
+            background: rgba(255,204,0,0.07);
+            font-size: 0.62rem;
+            font-weight: 950;
+        }
+
+
+        /* OVERALL WINNER DISPLAY */
+        .overall-winner-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            border: 1px solid rgba(255,204,0,0.28);
+            background:
+                radial-gradient(circle at 16% 16%, rgba(255,204,0,0.20), transparent 36%),
+                radial-gradient(circle at 88% 76%, rgba(255,255,255,0.07), transparent 32%),
+                linear-gradient(145deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025));
+            padding: 15px 16px;
+            margin-bottom: 16px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+        }
+
+        .overall-winner-eyebrow {
+            color: var(--text-muted);
+            font-size: 0.68rem;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 5px;
+        }
+
+        .overall-winner-name {
+            color: var(--ger-gold);
+            font-size: 1.34rem;
+            font-weight: 950;
+            letter-spacing: -0.035em;
+            line-height: 1.1;
+        }
+
+        .overall-winner-meta {
+            color: var(--text-muted);
+            font-size: 0.74rem;
+            font-weight: 820;
+            margin-top: 7px;
+            line-height: 1.35;
+        }
+
+        .overall-winner-points {
+            color: var(--text-main);
+            font-weight: 950;
+        }
+
 </style>
 </head>
 <body>
@@ -1290,7 +1416,7 @@
                         <span style="background: var(--ger-red);"></span>
                         <span style="background: var(--ger-gold);"></span>
                     </div>
-                    <span>WM 2026 Immersive</span><!-- VERSION: full-tournament-tree-v10 -->
+                    <span>WM 2026 Immersive</span><!-- VERSION: manual-bonus-winner-v12 -->
                 </div>
                 <div class="header-actions">
                     <div class="capsule-pill-controls">
@@ -1315,7 +1441,7 @@
         <!-- DASHBOARD CONTAINER SECTIONS -->
         <div id="tab-dash" class="content-section active">
 <div class="card">
-                <div class="card-title">Live-Ranking</div><div style="color:var(--text-muted);font-size:0.76rem;font-weight:800;margin-top:-8px;margin-bottom:12px;">Letzte Änderung: Punkte + Rang</div>
+                <div class="card-title">Live-Ranking</div><div style="color:var(--text-muted);font-size:0.76rem;font-weight:800;margin-top:-8px;margin-bottom:12px;">Letzte Änderung: Punkte + Rang</div><div id="overall-winner-container"></div>
                 <div id="leaderboard-container"></div>
             </div>
             
@@ -2501,7 +2627,7 @@
                     if (!b.adminRes || !String(b.adminRes).trim()) return;
                     getBadgePlayers().forEach(p => {
                         const val = b.tips && typeof b.tips[p] !== 'undefined' ? b.tips[p] : '';
-                        if (String(val).trim().toLowerCase() === String(b.adminRes).trim().toLowerCase()) {
+                        if (bonusAnswersEqual(val, b.adminRes)) {
                             scores[p].bonus += b.pts || 0;
                             scores[p].total += b.pts || 0;
                         }
@@ -3168,7 +3294,7 @@
                 if (b.adminRes && String(b.adminRes).trim() !== '') {
                     window.players.forEach(p => {
                         const val = b.tips && typeof b.tips[p] !== 'undefined' ? b.tips[p] : '';
-                        if (String(val).trim().toLowerCase() === String(b.adminRes).trim().toLowerCase()) {
+                        if (bonusAnswersEqual(val, b.adminRes)) {
                             scores[p].b += b.pts;
                         }
                     });
@@ -4077,8 +4203,140 @@
             return certified;
         }
 
+
+        function normalizeBonusAnswer(value) {
+            return String(value ?? '')
+                .trim()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/ß/g, 'ss')
+                .replace(/[^a-z0-9]/g, '');
+        }
+
+        function bonusAnswersEqual(a, b) {
+            const na = normalizeBonusAnswer(a);
+            const nb = normalizeBonusAnswer(b);
+
+            if (!na || !nb) return false;
+
+            const aliases = {
+                'mbappe': 'kylianmbappe',
+                'kylianmbappe': 'kylianmbappe',
+                'rudiger': 'antoniorudiger',
+                'antoniorudiger': 'antoniorudiger',
+                'wirtz': 'florianwirtz',
+                'florianwirtz': 'florianwirtz',
+                'musiala': 'jamalmusiala',
+                'jamalmusiala': 'jamalmusiala',
+                'kane': 'harrykane',
+                'harrykane': 'harrykane',
+                'torres': 'ferrantorres',
+                'ferrantorres': 'ferrantorres'
+            };
+
+            return (aliases[na] || na) === (aliases[nb] || nb);
+        }
+
+        function getBonusAwardForPlayer(bonusItem, player) {
+            if (!bonusItem || !bonusItem.adminRes || !String(bonusItem.adminRes).trim()) {
+                return { points: 0, status: 'open', label: 'offen' };
+            }
+
+            const tip = bonusItem.tips && typeof bonusItem.tips[player] !== 'undefined'
+                ? bonusItem.tips[player]
+                : '';
+
+            const correct = bonusAnswersEqual(tip, bonusItem.adminRes);
+
+            return {
+                points: correct ? Number(bonusItem.pts || 0) : 0,
+                status: correct ? 'correct' : 'wrong',
+                label: correct ? `+${Number(bonusItem.pts || 0)}` : '0'
+            };
+        }
+
+        function getBonusScoresByPlayer() {
+            const scores = {};
+            window.players.forEach(p => scores[p] = 0);
+
+            window.bonus.forEach(b => {
+                window.players.forEach(p => {
+                    scores[p] += getBonusAwardForPlayer(b, p).points;
+                });
+            });
+
+            return scores;
+        }
+
+
+        function clearLegacyAutoBonusResults() {
+            if (!Array.isArray(window.bonus)) return false;
+
+            let changed = false;
+
+            window.bonus.forEach(b => {
+                if (b.autoResolved === true) {
+                    b.adminRes = '';
+                            changed = true;
+                }
+            });
+
+            return changed;
+        }
+
+
+        function renderBonusAwardPill(bonusItem, player) {
+            const award = getBonusAwardForPlayer(bonusItem, player);
+            return `<span class="bonus-award-pill ${award.status}">${award.label}</span>`;
+        }
+
+
+
+        function isTipGameFullyFinished() {
+            const allMatchesDone = window.matches.every(m =>
+                m.real && m.real[0] !== null && m.real[1] !== null
+            );
+
+            const allBonusResolved = window.bonus.every(b =>
+                b.adminRes && String(b.adminRes).trim() !== ''
+            );
+
+            return allMatchesDone && allBonusResolved;
+        }
+
+        function renderOverallWinner(arr) {
+            const container = document.getElementById('overall-winner-container');
+            if (!container || !Array.isArray(arr) || arr.length === 0) return;
+
+            const topPoints = arr[0].t;
+            const leaders = arr.filter(p => p.t === topPoints);
+            const finalState = isTipGameFullyFinished();
+
+            const label = finalState
+                ? (leaders.length > 1 ? 'Geteilte Tippspiel-Gewinner' : 'Tippspiel-Gewinner')
+                : (leaders.length > 1 ? 'Aktuelle Gesamtführer' : 'Aktueller Gesamtführer');
+
+            const names = leaders.map(p => p.name).join(' & ');
+            const detail = leaders.length === 1
+                ? `${leaders[0].m} Spielpunkte · ${leaders[0].b} Bonuspunkte`
+                : `${leaders.length} Spieler punktgleich`;
+
+            container.innerHTML = `
+                <div class="overall-winner-card">
+                    <div class="overall-winner-eyebrow">${finalState ? '🏆 Endstand' : '👑 Zwischenstand'}</div>
+                    <div class="overall-winner-name">${label}: ${names}</div>
+                    <div class="overall-winner-meta">
+                        <span class="overall-winner-points">${topPoints} Gesamtpunkte</span>
+                        · ${detail}
+                    </div>
+                </div>`;
+        }
+
+
         function updateUI() {
             ensureAllPlayerData();
+            clearLegacyAutoBonusResults();
             applyCalculatedQualifiedTeams();
             ensurePlayerVisibilityUI();
             let scores = {}; window.players.forEach(p => scores[p] = {m:0, b:0});
@@ -4093,10 +4351,9 @@
                     });
                 }
             });
-            window.bonus.forEach(b => {
-                if(b.adminRes && b.adminRes.trim() !== '') {
-                    window.players.forEach(p => { if(b.tips[p] && b.tips[p].toLowerCase() === b.adminRes.trim().toLowerCase()) scores[p].b += b.pts; });
-                }
+            const distributedBonusScores = getBonusScoresByPlayer();
+            window.players.forEach(p => {
+                scores[p].b = distributedBonusScores[p] || 0;
             });
             let arr = window.players.map(p => ({ name: p, t: scores[p].m + scores[p].b, m: scores[p].m, b: scores[p].b })).sort((a,b) => b.t - a.t || b.m - a.m || a.name.localeCompare(b.name));
             const rankingDeltaMeta = getRankingDeltaMeta();
@@ -4105,6 +4362,7 @@
                 html += `<div class="rank-row"><div class="rank-num ${idx==0?'rank-1':''}">${idx+1}</div><div class="rank-info"><div class="rank-name">${p.name}</div><div class="leader-meta-line">${renderRankingDeltaPills(p.name, rankingDeltaMeta)}</div><div class="bar-bg"><div class="bar-fill" style="width: ${(p.t/maxPts)*100}%"></div></div></div><div class="rank-pts">${p.t}</div></div>`;
             });
             document.getElementById('leaderboard-container').innerHTML = html;
+            renderOverallWinner(arr);
             let myObj = arr.find(x => x.name === window.currentUser) || {t:0, m:0, b:0};
             let myRank = arr.findIndex(x => x.name === window.currentUser) + 1 || '-';
             document.getElementById('personal-stats').innerHTML = `
@@ -4336,40 +4594,74 @@
         function renderBonus() {
             ensureAllPlayerData();
 
-            let html = '';
+            const bonusScores = getBonusScoresByPlayer();
+
+            let html = `
+                <div style="color:var(--text-main);font-size:0.9rem;font-weight:950;margin-bottom:10px;">Verteilte Bonuspunkte</div>
+                <div class="bonus-score-summary">
+                    ${window.players.map(p => `
+                        <div class="bonus-score-card">
+                            <div class="bonus-score-name">${p}</div>
+                            <div class="bonus-score-value">${bonusScores[p] || 0} Pkt</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
 
             window.bonus.forEach(b => {
                 const isAdmin = window.currentUser === 'Admin';
-                const myTipValue = (b.tips && typeof b.tips[window.currentUser] !== 'undefined') ? b.tips[window.currentUser] : '';
+                const myTipValue = (b.tips && typeof b.tips[window.currentUser] !== 'undefined')
+                    ? b.tips[window.currentUser]
+                    : '';
 
                 let adminHtml = isAdmin
                     ? `<div class="b-admin-res">
-                            <input type="text" value="${b.adminRes}" onchange="saveBonus('${b.id}', this.value)" placeholder="Offizielle Lösung eintragen">
-                            <div class="bonus-admin-note">Nur Admin: offizielle Bonus-Lösung für die spätere Auswertung.</div>
+                            <input type="text" value="${b.adminRes || ''}" onchange="saveBonus('${b.id}', this.value)" placeholder="Offizielle Lösung eintragen">
+                            <div class="bonus-admin-note">
+                                Admin trägt die offizielle Antwort ein. Bei Übereinstimmung werden exakt ${b.pts} Punkte vergeben.
+                            </div>
                        </div>`
-                    : `<div class="b-admin-res"><span style="color:white;font-weight:bold">${b.adminRes || '---'}</span></div>`;
+                    : `<div class="b-admin-res">
+                            <span style="color:white;font-weight:bold">${b.adminRes || 'Noch nicht ausgewertet'}</span>
+                       </div>`;
 
                 let myTip = '';
                 if (!isAdmin) {
                     myTip = `<div class="bonus-locked-box">
                         <div>
-                            <div class="bonus-locked-label">Dein Bonus-Tipp <span class="bonus-lock-pill">🔒 gesperrt</span></div>
+                            <div class="bonus-locked-label">
+                                Dein Bonus-Tipp
+                                <span class="bonus-lock-pill">🔒 gesperrt</span>
+                            </div>
                         </div>
-                        <div class="bonus-locked-value">${myTipValue || '---'}</div>
+                        <div class="bonus-locked-value">
+                            ${myTipValue || '---'}
+                            ${renderBonusAwardPill(b, window.currentUser)}
+                        </div>
                     </div>`;
                 }
 
                 let others = `<div class="others-tips">`;
                 window.players.forEach(p => {
-                    if(p !== window.currentUser) {
+                    if (p !== window.currentUser) {
                         const val = (b.tips && typeof b.tips[p] !== 'undefined') ? b.tips[p] : '';
-                        others += `<div class="tip-row"><span>${p}:</span> <span>${val || '---'}</span></div>`;
+                        others += `
+                            <div class="tip-row">
+                                <span>${p}:</span>
+                                <span>
+                                    ${val || '---'}
+                                    ${renderBonusAwardPill(b, p)}
+                                </span>
+                            </div>`;
                     }
                 });
                 others += `</div>`;
 
                 html += `<div class="bonus-q">
-                    <div class="b-title"><span>${b.q}</span><span>+${b.pts} Pkt</span></div>
+                    <div class="b-title">
+                        <span>${b.q}</span>
+                        <span>+${b.pts} Pkt</span>
+                    </div>
                     ${adminHtml}
                     ${myTip}
                     ${others}
@@ -4545,6 +4837,7 @@
                 });
             }
             ensureAllPlayerData();
+            const legacyBonusWasCleared = clearLegacyAutoBonusResults();
             const janaBonusWasUpdated = applyJanaLockedBonusTips();
             if(cloudPrize) { window.prizeState = cloudPrize; ensurePrizeState(); localStorage.setItem('wm_prize_state_v1', JSON.stringify(window.prizeState)); }
             localStorage.setItem('wm_data_final_all', JSON.stringify(window.matches));
@@ -4561,13 +4854,14 @@
                 setTimeout(() => incrementPrizeWarningCounterIfNeeded(), 0);
             }
 
-            if (janaBonusWasUpdated && window.cloudSaveEngine && window.cloudDataLoaded) {
+            if ((janaBonusWasUpdated || legacyBonusWasCleared) && window.cloudSaveEngine && window.cloudDataLoaded) {
                 setTimeout(() => saveData(), 0);
             }
         };
 
         function saveData() {
             ensureAllPlayerData();
+            clearLegacyAutoBonusResults();
             applyCalculatedQualifiedTeams();
             ensurePrizeState();
 
