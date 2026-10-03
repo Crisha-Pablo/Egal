@@ -1,12 +1,16 @@
 // =====================================================================
 //  Gridfinity Rasier-Set, alles liegend (für die Schublade)
 //  ---------------------------------------------------------------------
-//  * Rasierschaum-Wiege: Gillette Shave Foam Sensitive (200 ml) ....... 5x2
-//  * Rasierer-Halter: Gillette Fusion5 ProGlide (FlexBall) und
-//    GilletteLabs Body + Intimate (3 Klingen), Kopf an Fuß ............ 4x2
-//  * Klingenbox-Halter: die Plastik-Klingenboxen beider Rasierer ...... 2x3
+//  * Rasierschaum-Wiege: Gillette Shave Foam Sensitive, mit Endanschlägen
+//  * Rasierer-Halter: Gillette Fusion5 ProGlide und der kleine
+//    3-Klingen-Rasierer, Kopf an Fuß, Mulden in exakter Umrissform
+//  * Klingenbox-Halter: die Plastik-Klingenboxen beider Rasierer
 //  * Passtest: flache Rahmen und ein Ring, um vorab die Passung zu prüfen
 //  Die Rastergrößen rechnet das Modell aus den Maßen selbst aus.
+//
+//  Umrisse: kleiner Rasierer und Dose aus deinen Fotos vermessen
+//  (werkzeug/fotos_vermessen.py), ProGlide aus einem Produktbild
+//  (werkzeug/umriss_aus_bild.py). Die Daten stehen in umrisse.scad.
 //
 //  Komplett parametrisch, ohne externe Bibliotheken.
 //  Läuft ab OpenSCAD 2021.01. Werte ändern über Fenster > Customizer,
@@ -20,16 +24,14 @@
 // Welches Teil angezeigt bzw. exportiert wird
 teil = "uebersicht"; // [uebersicht, rasierschaum, rasierer, klingenboxen, passtest]
 
-/* [Rasierschaum-Dose] */
-// Durchmesser der Dose in mm (bitte nachmessen)
-dose_d = 50;
-// Länge der Dose inklusive Kappe in mm (bitte nachmessen)
-dose_l = 193;
+/* [Maßstab und Dose] */
+// Durchmesser der Rasierschaum-Dose in mm. Das ist zugleich der Maßstab für alle Fotomaße: 49 mm laut Hersteller. Nachgemessen eintragen, dann passt alles exakt.
+dose_d = 49;
 // Spiel rundherum (mm)
 dose_spiel = 0.8;
-// Spiel an jedem Ende (mm)
-dose_spiel_ende = 3;
-// Anzahl der Auflagestege
+// Spiel an jedem Ende bis zum Anschlag (mm)
+dose_spiel_ende = 1.5;
+// Anzahl der Auflagestege unter dem Dosenkörper
 dose_stege = 3;
 // Dicke eines Auflagestegs (mm)
 dose_steg_d = 4;
@@ -39,37 +41,19 @@ dose_wand = 1.2;
 dose_hoehe_u = 4;
 
 /* [Gillette Fusion5 ProGlide] */
-// Gesamtlänge vom Griffende bis zur Oberkante der Klinge (mm)
-pg_laenge = 156;
-// Breite des Klingenkopfs (mm)
-pg_kopf_b = 43;
-// Länge des Kopfs entlang des Rasierers, von oben gesehen (mm)
-pg_kopf_l = 26;
-// Breiteste Stelle des Griffs (mm)
-pg_griff_b = 24;
-
-/* [GilletteLabs Body + Intimate] */
-// Gesamtlänge vom Griffende bis zur Oberkante der Klinge (mm)
-bi_laenge = 145;
-// Breite des Klingenkopfs (mm)
-bi_kopf_b = 39;
-// Länge des Kopfs entlang des Rasierers, von oben gesehen (mm)
-bi_kopf_l = 24;
-// Breiteste Stelle des Griffs (mm)
-bi_griff_b = 19;
+// Gesamtlänge vom Griffende bis zur Oberkante der Klinge (mm). VORLÄUFIG: Umriss aus einem Produktbild, Größe geschätzt
+pg_laenge = 135;
 
 /* [Rasierer-Halter] */
 // Welche Rasierer in den Halter kommen
-rasierer_auswahl = "beide"; // [beide, proglide, body_intimate]
+rasierer_auswahl = "beide"; // [beide, proglide, klein]
 // Spiel rund um die Rasierer (mm)
-rasierer_spiel = 1;
-// Tiefe der Griffrinne (mm)
-griff_tiefe = 10;
-// Tiefe der Kopfmulde (mm)
-kopf_tiefe = 12;
+rasierer_spiel = 0.8;
+// Tiefe der Mulden (mm). 13 mm: der Griff liegt fast bündig, der Kopf sitzt in seiner Mulde
+rasierer_tiefe = 13;
 // Mindeststeg zwischen den Mulden (mm)
 rasierer_steg = 2;
-// Einführfase an den Rasierer-Mulden (mm), klein halten, die Stege sind schmal
+// Einführfase an den Rasierer-Mulden (mm)
 rasierer_fase = 0.8;
 // Höhe in Gridfinity-Einheiten
 rasierer_hoehe_u = 3;
@@ -130,6 +114,9 @@ magnet_h = 2.4;
 magnet_abstand = 26;
 eps = 0.01;
 schrift = "Liberation Sans:style=Bold";
+
+include <umrisse.scad>
+foto_k = dose_d / 49;                  // Fotomaße wurden mit 49 mm Dosendurchmesser vermessen
 
 // ---------------------------------------------------------------------
 //  Hilfsfunktionen
@@ -227,94 +214,121 @@ module griffmulde(x, z_grund, r, laenge, h) {
 }
 
 // ---------------------------------------------------------------------
-//  Rasierschaum-Wiege (Dose liegt quer auf Auflagestegen)
+//  Rasierschaum-Wiege (Dose liegt auf Auflagestegen, Anschläge an beiden Enden)
 // ---------------------------------------------------------------------
 
-function wiege_mass() = let(r = dose_d / 2 + dose_spiel, L = dose_l + 2 * dose_spiel_ende)
-    [r, L, einheiten(L), einheiten(2 * r)];
+// Länge aus dem Foto (Verhältnis Länge/Durchmesser), Schulter und Kappe aus dem Produktbild
+function dose_laenge() = dose_l_zu_d * dose_d;
+function dose_oben_l() = dose_oben[len(dose_oben) - 1][0] * dose_d;
+function dose_kappe_r() = min([for (p = dose_oben) if (p[0] > 0.1) p[1]]) * dose_d;
+function wiege_mass() = let(
+        R = dose_d / 2 + dose_spiel,
+        L = dose_laenge(),
+        innen_l = L + 2 * dose_spiel_ende + 2 * dose_steg_d)      // Dose, Spiel, zwei Anschläge
+    [R, L, max(1, ceil((innen_l + 2 * dose_wand + spalt) / raster)), einheiten(2 * R)];
 
 module rasierschaum_wiege() {
     m = wiege_mass();
-    r = m[0];
+    R = m[0];
     L = m[1];
     nx = m[2];
     ny = m[3];
     h = dose_hoehe_u * hu;
+    ix = aussen(nx) - 2 * dose_wand;
     iy = aussen(ny) - 2 * dose_wand;
-    zc = z_boden + r;                         // Dosenachse
-    rand = min(30, L / 4);                    // Abstand äußerer Stege vom Dosenende
+    zc = z_boden + R;                          // Achse der Auflagerundung
+    x0 = -L / 2;                               // Dosenboden, die Kappe zeigt nach +x
+    koerper = L - dose_oben_l();               // zylindrischer Teil
+    stege = dose_stege == 1 ? [koerper / 2] :
+        [for (k = [0:dose_stege - 1]) 0.12 * L + k * (koerper - 6 - 0.12 * L) / (dose_stege - 1)];
+    // Anschläge fangen auch die schmalere Kappe sicher ab
+    anschlag_h = min(h, z_boden + dose_d / 2 - dose_kappe_r() + 9);
+    echo(str("DOSE: ", L, " x ", dose_d, " mm"));
     difference() {
         gridfinity_block(nx, ny, h);
-        translate([0, 0, z_boden]) abgerundetes_rechteck(aussen(nx) - 2 * dose_wand, iy, h, r_aussen - dose_wand);
+        translate([0, 0, z_boden]) abgerundetes_rechteck(ix, iy, h, r_aussen - dose_wand);
     }
-    for (k = [0:dose_stege - 1]) {
-        x = dose_stege == 1 ? 0 : -L / 2 + rand + k * (L - 2 * rand) / (dose_stege - 1);
-        translate([x, 0, 0]) difference() {
-            // Steg greift 0,5 mm in Boden und Wände, damit alles zu einem Körper verschmilzt
+    // Stege greifen 0,5 mm in Boden und Wände, damit alles zu einem Körper verschmilzt
+    for (st = stege) translate([x0 + st, 0, 0]) difference() {
+        translate([-dose_steg_d / 2, -iy / 2 - 0.5, z_boden - 0.5])
+            cube([dose_steg_d, iy + 1, h - z_boden + 0.5]);
+        translate([0, 0, zc]) rotate([0, 90, 0]) cylinder(h = dose_steg_d + 2, r = R, center = true);
+        c = 0.6;   // kleine Fasen an den Kanten der Rundung
+        translate([dose_steg_d / 2 - c, 0, zc]) rotate([0, 90, 0])
+            cylinder(h = c + eps, r1 = R, r2 = R + c + eps);
+        translate([-dose_steg_d / 2 - eps, 0, zc]) rotate([0, 90, 0])
+            cylinder(h = c + eps, r1 = R + c + eps, r2 = R);
+    }
+    for (xa = [x0 - dose_spiel_ende - dose_steg_d / 2, -x0 + dose_spiel_ende + dose_steg_d / 2])
+        translate([xa, 0, 0]) hull() {
             translate([-dose_steg_d / 2, -iy / 2 - 0.5, z_boden - 0.5])
-                cube([dose_steg_d, iy + 1, h - z_boden + 0.5]);
-            translate([0, 0, zc]) rotate([0, 90, 0]) cylinder(h = dose_steg_d + 2, r = r, center = true);
-            // kleine Fasen an beiden Kanten der Rundung
-            c = 0.6;
-            translate([dose_steg_d / 2 - c, 0, zc]) rotate([0, 90, 0])
-                cylinder(h = c + eps, r1 = r, r2 = r + c + eps);
-            translate([-dose_steg_d / 2 - eps, 0, zc]) rotate([0, 90, 0])
-                cylinder(h = c + eps, r1 = r + c + eps, r2 = r);
+                cube([dose_steg_d, iy + 1, anschlag_h - z_boden - 0.5]);
+            translate([-dose_steg_d / 2 + 1, -iy / 2 - 0.5, z_boden - 0.5])
+                cube([dose_steg_d - 2, iy + 1, anschlag_h - z_boden + 0.5]);
         }
-    }
 }
 
 // ---------------------------------------------------------------------
-//  Rasierer-Halter (liegend, beide Rasierer Kopf an Fuß)
+//  Rasierer-Halter (liegend, Mulden in der gemessenen Umrissform)
 // ---------------------------------------------------------------------
 
-// [Länge, Kopfbreite, Kopflänge, Griffbreite] inklusive Spiel
-function rasierer_pg() = [pg_laenge, pg_kopf_b, pg_kopf_l, pg_griff_b] + [2, 2, 2, 2] * rasierer_spiel;
-function rasierer_bi() = [bi_laenge, bi_kopf_b, bi_kopf_l, bi_griff_b] + [2, 2, 2, 2] * rasierer_spiel;
+// Profile in mm: [Abstand vom Griffende, halbe Breite]
+function profil_pg() = [for (p = pg_profil) p * pg_laenge];
+function profil_klein() = [for (p = bi_profil_mm) p * foto_k];
+function profil_laenge(pr) = pr[len(pr) - 1][0];
+function profil_max(pr) = max([for (p = pr) p[1]]);
+// halbe Breite an der Stelle s, 0 außerhalb des Rasierers
+function halb_bei(pr, s) = (s < 0 || s > profil_laenge(pr)) ? 0 : lookup(s, pr);
 
-// Benötigte Innenmaße [x, y]
-function rasierer_innen() = let(a = rasierer_pg(), b = rasierer_bi(), s = rasierer_steg)
-    rasierer_auswahl == "proglide" ? [a[0], a[1]] :
-    rasierer_auswahl == "body_intimate" ? [b[0], b[1]] :
-    [max(a[0], b[0], a[2] + b[2] + s),
-     max(a[1] + s + (b[1] + b[3]) / 2,   // ProGlide-Kopf neben Body+Intimate-Griff
-         (a[1] + a[3]) / 2 + s + b[1],   // Body+Intimate-Kopf neben ProGlide-Griff
-         a[1], b[1])];
-
-function rasierer_raster() = let(i = rasierer_innen()) [einheiten(i[0]), einheiten(i[1])];
-
-// Mulde für einen Rasierer: Griffende bei x = 0, Kopf bei +x, Achse auf y = 0
-module rasierer_mulde(r, h) {
-    L = r[0];
-    K = r[1];
-    T = r[2];
-    G = r[3];
-    // Griffrinne reicht bis in die Kopfmulde hinein
-    tasche(griff_tiefe, h, rasierer_fase) translate([(L - T / 2) / 2, 0]) stadion(L - T / 2, G);
-    tasche(kopf_tiefe, h, rasierer_fase) translate([L - T / 2, 0]) rundrechteck_2d(T, K, min(3, T / 3));
+// Umriss als 2D-Form: Griffende bei x = 0, Kopf bei +x
+module rasierer_form(pr) {
+    polygon(concat([for (p = pr) [p[0], p[1]]], [for (i = [len(pr) - 1:-1:0]) [pr[i][0], -pr[i][1]]]));
 }
+
+// Mulde für eine beliebige 2D-Form (Kind): Spiel rundum, Fase in vier Stufen
+module mulde_frei(t, h) {
+    translate([0, 0, h - t]) linear_extrude(t + 1) offset(r = rasierer_spiel) children();
+    for (i = [1:4])
+        translate([0, 0, h - rasierer_fase + (i - 1) * rasierer_fase / 4])
+            linear_extrude(rasierer_fase + 1) offset(r = rasierer_spiel + i * rasierer_fase / 4) children();
+}
+
+// [nx, ny, Griffende ProGlide x, Griffende klein x, Achse ProGlide y, Achse klein y]
+// Beide Köpfe liegen an den Stirnwänden. Der Achsabstand ergibt sich aus der größten
+// Summe beider halben Breiten an derselben Stelle, so greifen die Umrisse ineinander.
+function rasierer_layout() = let(
+        a = profil_pg(), b = profil_klein(), sp = rasierer_spiel,
+        nur_pg = rasierer_auswahl == "proglide", nur_kl = rasierer_auswahl == "klein",
+        La = profil_laenge(a), Lb = profil_laenge(b),
+        nx = einheiten((nur_pg ? La : nur_kl ? Lb : max(La, Lb)) + 2 * sp),
+        ix = innen(nx),
+        xa = nur_pg ? -La / 2 : ix / 2 - sp - La,
+        xb = nur_kl ? Lb / 2 : -ix / 2 + sp + Lb,
+        am = profil_max(a), bm = profil_max(b),
+        summe = max([for (x = [-ix / 2:0.5:ix / 2]) halb_bei(a, x - xa) + halb_bei(b, xb - x)]),
+        d = summe + 2 * (sp + rasierer_fase) + rasierer_steg,   // Steg bleibt auch an der Oberkante voll
+        iy = nur_pg ? 2 * (am + sp) : nur_kl ? 2 * (bm + sp) : am + bm + d + 2 * sp,
+        _e = echo(str("RASIERER: Achsabstand ", d, " mm, Innenbreite ", iy, " mm")),
+        ny = einheiten(iy),
+        ya = (nur_pg || nur_kl) ? 0 : -iy / 2 + am + sp)
+    [nx, ny, xa, xb, ya, ya + ((nur_pg || nur_kl) ? 0 : d)];
 
 module rasierer_halter() {
-    a = rasierer_pg();
-    b = rasierer_bi();
-    n = rasierer_raster();
+    lay = rasierer_layout();
     h = rasierer_hoehe_u * hu;
-    ix = innen(n[0]);
-    iy = innen(n[1]);
-    beide = rasierer_auswahl == "beide";
-    // ProGlide vorne mit Kopf rechts, Body+Intimate hinten mit Kopf links
-    y_pg = beide ? -iy / 2 + a[1] / 2 : 0;
-    y_bi = beide ? iy / 2 - b[1] / 2 : 0;
-    // Griffmulde dort, wo die Griffe liegen
-    x_mulde = beide ? (b[2] - a[2]) / 2 :
-              rasierer_auswahl == "proglide" ? ix / 2 - a[0] / 2 - a[2] / 2 : -ix / 2 + b[0] / 2 + b[2] / 2;
+    t = min(rasierer_tiefe, h - z_boden);
+    a = profil_pg();
+    b = profil_klein();
+    mit_pg = rasierer_auswahl != "klein";
+    mit_kl = rasierer_auswahl != "proglide";
+    // Griffmulde quer zu den Griffen, dort wo beide Griffe liegen
+    x_mulde = !mit_kl ? lay[2] + 0.4 * profil_laenge(a) :
+              !mit_pg ? lay[3] - 0.4 * profil_laenge(b) : (lay[2] + lay[3]) / 2;
     difference() {
-        gridfinity_block(n[0], n[1], h);
-        if (rasierer_auswahl != "body_intimate")
-            translate([ix / 2 - a[0], y_pg, 0]) rasierer_mulde(a, h);
-        if (rasierer_auswahl != "proglide")
-            translate([-ix / 2 + b[0], y_bi, 0]) rotate(180) rasierer_mulde(b, h);
-        griffmulde(x_mulde, h - griff_tiefe - 3, 11, aussen(n[1]) + 2, griff_tiefe + 10);
+        gridfinity_block(lay[0], lay[1], h);
+        if (mit_pg) translate([lay[2], lay[4], 0]) mulde_frei(t, h) rasierer_form(a);
+        if (mit_kl) translate([lay[3], lay[5], 0]) rotate(180) mulde_frei(t, h) rasierer_form(b);
+        griffmulde(x_mulde, max(z_boden + 0.3, h - t - 2), 11, aussen(lay[1]) + 2, t + 10);
     }
 }
 
@@ -372,12 +386,6 @@ module beschriftung(t, gr) {
         linear_extrude(1) text(t, size = gr, font = schrift, halign = "center", valign = "center");
 }
 
-// Umriss einer Rasierer-Mulde als 2D-Form (Griffende bei x = 0)
-module rasierer_umriss(r) {
-    translate([(r[0] - r[2] / 2) / 2, 0]) stadion(r[0] - r[2] / 2, r[3]);
-    translate([r[0] - r[2] / 2, 0]) rundrechteck_2d(r[2], r[1], min(3, r[2] / 3));
-}
-
 // Rahmen um eine 2D-Form (Kind), Beschriftungslasche bei (lx, ly)
 module test_rahmen(t, lx, ly) {
     difference() {
@@ -390,25 +398,35 @@ module test_rahmen(t, lx, ly) {
     }
 }
 
+// Die Rasierer-Rahmen haben genau die Muldenform. Der Ring hat genau den Durchmesser der
+// Wiege: Passt die Dose sauber hinein, stimmt der Maßstab für alle Fotomaße.
 module passtest() {
-    a = rasierer_pg();
-    b = rasierer_bi();
+    a = profil_pg();
+    b = profil_klein();
+    sp = rasierer_spiel;
     rd = dose_d + 2 * dose_spiel;
     pg = [pg_box_l, pg_box_b] + [2, 2] * box_spiel;
     bi = [bi_box_l, bi_box_b] + [2, 2] * box_spiel;
     abst = 5;
-    // Rasierer-Umrisse übereinander, Lasche mittig neben dem Griff
-    y_pg = 0;
-    y_bi = y_pg - a[1] / 2 - 2 * pt_w - abst - b[1] / 2;
-    translate([-a[0] / 2, y_pg, 0]) test_rahmen("PROGLIDE", a[0] * 0.38, a[3] / 2 + pt_w + 3.5) rasierer_umriss(a);
-    translate([-b[0] / 2, y_bi, 0]) test_rahmen("BODY+INT.", b[0] * 0.38, -b[3] / 2 - pt_w - 3.5) rasierer_umriss(b);
+    La = profil_laenge(a);
+    Lb = profil_laenge(b);
+    am = profil_max(a) + sp;
+    bm = profil_max(b) + sp;
+    // Rasierer-Umrisse übereinander, Köpfe rechts, Lasche neben dem Griff
+    translate([-La / 2, 0, 0])
+        test_rahmen("PROGLIDE", 0.3 * La, halb_bei(a, 0.3 * La) + sp + pt_w + 3.5)
+            offset(r = sp) rasierer_form(a);
+    y_kl = -am - bm - 2 * pt_w - abst;
+    translate([-Lb / 2, y_kl, 0])
+        test_rahmen("KLEIN", 0.3 * Lb, -halb_bei(b, 0.3 * Lb) - sp - pt_w - 3.5)
+            offset(r = sp) rasierer_form(b);
     // Klingenboxen und Dosenring in einer Reihe darunter
-    y_reihe = y_bi - b[1] / 2 - 2 * pt_w - abst - 10 - max(pg[1], bi[1], rd) / 2;
-    x0 = -max(a[0], b[0]) / 2 - pt_w;
+    y_reihe = y_kl - bm - 2 * pt_w - abst - 10 - max(pg[1], bi[1], rd) / 2;
+    x0 = -max(La, Lb) / 2 - pt_w;
     translate([x0 + pt_w + pg[0] / 2, y_reihe, 0])
         test_rahmen("PG-BOX", 0, pg[1] / 2 + pt_w + 3.5) rundrechteck_2d(pg[0], pg[1], 2);
     translate([x0 + 3 * pt_w + pg[0] + abst + bi[0] / 2, y_reihe, 0])
-        test_rahmen("BI-BOX", 0, bi[1] / 2 + pt_w + 3.5) rundrechteck_2d(bi[0], bi[1], 2);
+        test_rahmen("BOX KLEIN", 0, bi[1] / 2 + pt_w + 3.5) rundrechteck_2d(bi[0], bi[1], 2);
     translate([x0 + 5 * pt_w + pg[0] + bi[0] + 2 * abst + rd / 2, y_reihe, 0])
         test_rahmen("DOSE", 0, rd / 2 + pt_w + 3.5) circle(d = rd);
 }
@@ -419,46 +437,25 @@ module passtest() {
 
 farbe_halter = "#e9e6df";
 
+// Dose liegend entlang x, Boden bei x = -L/2, Achse auf z = 0
 module attrappe_dose() {
-    // liegt entlang X, Boden links, Kappe rechts, Achse auf z = 0
-    rotate([0, 90, 0]) translate([0, 0, -dose_l / 2]) {
-        color("#2bb3b1") cylinder(h = dose_l * 0.5, d = dose_d);
-        color("#151515") translate([0, 0, dose_l * 0.5]) cylinder(h = dose_l * 0.36, d = dose_d);
-        color("#151515") translate([0, 0, dose_l * 0.86]) cylinder(h = 3, d1 = dose_d, d2 = dose_d - 6);
-        color("#202020") translate([0, 0, dose_l * 0.86 + 3]) cylinder(h = dose_l * 0.14 - 3, d = dose_d - 6);
+    L = dose_laenge();
+    o = dose_oben_l();
+    rotate([0, 90, 0]) translate([0, 0, -L / 2]) {
+        color("#2bb3b1") cylinder(h = (L - o) * 0.55, d = dose_d);
+        color("#151515") translate([0, 0, (L - o) * 0.55]) cylinder(h = (L - o) * 0.45, d = dose_d);
+        color("#151515") translate([0, 0, L - o])
+            rotate_extrude() polygon(concat([[0, 0]], [for (i = [len(dose_oben) - 1:-1:0])
+                [dose_oben[i][1] * dose_d, o - dose_oben[i][0] * dose_d]], [[0, o]]));
     }
 }
 
-// Griff liegend entlang X: Schnitte [x, Breite (Y), Dicke (Z)]
-module griff_liegend(schnitte) {
-    for (i = [0:len(schnitte) - 2]) hull() for (s = [schnitte[i], schnitte[i + 1]])
-        translate([s[0], 0, 0]) rotate([0, 90, 0]) linear_extrude(eps) stadion(s[2], s[1]);
-}
-
-module klingenkopf_liegend(b, t, klingen) {
-    // Klingenseite zeigt nach oben, leicht zum Griff geneigt
-    rotate([0, -25, 0]) {
-        color("#1c1c1c") cube([t, b, 9], center = true);
-        color("#c9c9c9") for (k = [0:klingen - 1])
-            translate([-t / 2 + 3 + k * (t - 6) / max(1, klingen - 1), 0, 4.6]) cube([0.9, b - 6, 0.6], center = true);
-    }
-}
-
-// Rasierer liegend: Griffende bei x = 0, Kopf bei +x, Griffunterseite auf z = 0
-module attrappe_rasierer(r, farbe_griff, klingen, dicke) {
-    L = r[0] - 2 * rasierer_spiel;
-    K = r[1] - 2 * rasierer_spiel;
-    T = r[2] - 2 * rasierer_spiel;
-    G = r[3] - 2 * rasierer_spiel;
-    translate([rasierer_spiel, 0, dicke / 2]) {
-        color(farbe_griff) griff_liegend([[0, G - 2, dicke * 0.8], [L * 0.15, G, dicke], [L * 0.55, G - 1, dicke],
-                                          [L - T - 14, G * 0.55, dicke * 0.7], [L - T - 2, 9, 8]]);
-        color("#a9a9a9") hull() {
-            translate([L - T - 6, 0, 0]) sphere(d = 8);
-            translate([L - T / 2 - 2, 0, 6]) sphere(d = 7);
-        }
-        translate([L - T / 2, 0, 9]) klingenkopf_liegend(K, T - 4, klingen);
-    }
+// flache Attrappe aus dem Umriss: Griffende bei x = 0, Kopf bei +x
+module attrappe_rasierer(pr, farbe) {
+    color(farbe) linear_extrude(12) rasierer_form(pr);
+    L = profil_laenge(pr);
+    color("#c9c9c9") translate([0, 0, 12]) linear_extrude(1)
+        intersection() { rasierer_form(pr); translate([0.9 * L, -50]) square([L, 100]); }
 }
 
 module attrappe_box(l, b, h) {
@@ -472,45 +469,39 @@ module setze(cx, cy, nx, ny) {
 
 module uebersicht() {
     w = wiege_mass();
-    rr = rasierer_raster();
-    a = rasierer_pg();
-    b = rasierer_bi();
-    lay = box_layout();
-    bn = [einheiten(lay[1][0]), einheiten(lay[1][1])];
-    x_box = max(w[2], rr[0]);
+    lay = rasierer_layout();
+    bl = box_layout();
+    bn = [einheiten(bl[1][0]), einheiten(bl[1][1])];
+    x_box = max(w[2], lay[0]);
     breite = x_box + bn[0];
-    tief = max(w[3] + rr[1], bn[1]);
-
+    tief = max(w[3] + lay[1], bn[1]);
+    h_r = rasierer_hoehe_u * hu;
+    t_r = min(rasierer_tiefe, h_r - z_boden);
     // ganze Szene um den Ursprung zentrieren (für die Kamera in build.sh)
     translate([-breite * raster / 2, -tief * raster / 2, 0]) {
-    // Grundplatte (nur angedeutet)
-    color("#8d8f93") translate([0, 0, -2.5]) cube([breite * raster, tief * raster, 2.5]);
-
-    setze(0, 0, w[2], w[3]) {
-        color(farbe_halter) rasierschaum_wiege();
-        translate([0, 0, z_boden + dose_d / 2 + 0.3]) attrappe_dose();
-    }
-    setze(0, w[3], rr[0], rr[1]) {
-        h = rasierer_hoehe_u * hu;
-        ix = innen(rr[0]);
-        iy = innen(rr[1]);
-        color(farbe_halter) rasierer_halter();
-        translate([ix / 2 - a[0], -iy / 2 + a[1] / 2, h - griff_tiefe])
-            attrappe_rasierer(a, "#5b5d60", 5, 14);
-        translate([-ix / 2 + b[0], iy / 2 - b[1] / 2, h - griff_tiefe]) rotate(180)
-            attrappe_rasierer(b, "#1e1e1e", 3, 13);
-    }
-    setze(x_box, 0, bn[0], bn[1]) {
-        h = box_hoehe_u * hu;
-        v = box_liste();
-        color(farbe_halter) klingenbox_halter();
-        if (lay[0] == "spalte" && len(v) == 2)
-            for (i = [0:1]) {
-                y = i == 0 ? -lay[1][1] / 2 + v[0][1] / 2 : lay[1][1] / 2 - v[1][1] / 2;
-                t = min(h - z_boden, max(5, v[i][2] - box_ueberstand));
-                translate([0, y, h - t]) attrappe_box(v[i][0] - 2 * box_spiel, v[i][1] - 2 * box_spiel, v[i][2]);
-            }
-    }
+        color("#8d8f93") translate([0, 0, -2.5]) cube([breite * raster, tief * raster, 2.5]);
+        setze(0, 0, w[2], w[3]) {
+            color(farbe_halter) rasierschaum_wiege();
+            translate([0, 0, z_boden + dose_d / 2]) attrappe_dose();
+        }
+        setze(0, w[3], lay[0], lay[1]) {
+            color(farbe_halter) rasierer_halter();
+            if (rasierer_auswahl != "klein")
+                translate([lay[2], lay[4], h_r - t_r]) attrappe_rasierer(profil_pg(), "#5b5d60");
+            if (rasierer_auswahl != "proglide")
+                translate([lay[3], lay[5], h_r - t_r]) rotate(180) attrappe_rasierer(profil_klein(), "#1e1e1e");
+        }
+        setze(x_box, 0, bn[0], bn[1]) {
+            h = box_hoehe_u * hu;
+            v = box_liste();
+            color(farbe_halter) klingenbox_halter();
+            if (bl[0] == "spalte" && len(v) == 2)
+                for (i = [0:1]) {
+                    y = i == 0 ? -bl[1][1] / 2 + v[0][1] / 2 : bl[1][1] / 2 - v[1][1] / 2;
+                    t = min(h - z_boden, max(5, v[i][2] - box_ueberstand));
+                    translate([0, y, h - t]) attrappe_box(v[i][0] - 2 * box_spiel, v[i][1] - 2 * box_spiel, v[i][2]);
+                }
+        }
     }
 }
 
