@@ -1,26 +1,37 @@
-# Gridfinity Rasier-Set (liegend, für die Schublade)
+# Gridfinity Rasier-Station
 
-![Übersicht](bilder/uebersicht.png)
+![Rasier-Station in Weiß](bilder/studio_weiss.jpg)
 
-Halter für:
+Ein einziges Gridfinity-Teil für die Schublade. Alles liegt flach in seiner eigenen Mulde:
 
-- **Gillette Shave Foam Sensitive** (Rasierschaum-Dose)
-- **Gillette Fusion5 ProGlide** (mit FlexBall)
-- **den kleinen 3-Klingen-Rasierer** mit gebogenem Chromhals (für Körper und Intimbereich)
-- die **Plastik-Klingenboxen** beider Rasierer
+- **Gillette Shave Foam Sensitive** (Rasierschaum-Dose) hinten, in einer Mulde genau in Dosenform
+- **Gillette Fusion5 ProGlide** und **der kleine 3-Klingen-Rasierer** mit gebogenem Chromhals (für Körper und Intimbereich) vorne, Kopf an Fuß
+- **zwei Klingenfächer** links und rechts der Rasierer für lose Ersatzklingen
 
-## Teile
-
-| Datei | Raster | Höhe | Inhalt | Filament* |
-|---|---|---|---|---|
-| `stl/rasierschaum_wiege_5x2x4u.stl` | 5 × 2 | 28 mm | Dose liegt auf drei Stegen, Anschläge an beiden Enden | ca. 95 g |
-| `stl/rasierer_halter_4x2x3u.stl` | 4 × 2 | 21 mm | beide Rasierer Kopf an Fuß, Mulden in exakter Umrissform | ca. 85 g |
-| `stl/klingenbox_halter_2x3x3u.stl` | 2 × 3 | 21 mm | beide Klingenboxen flach, mit Griffmulde | ca. 55 g |
-| `stl/passtest.stl` | – | 3 mm | Muldenumrisse, Boxrahmen und Dosenring zum Probedrucken | ca. 11 g |
+| Datei | Raster | Maße | Filament* |
+|---|---|---|---|
+| `stl/rasier_station_5x4x3u.stl` | 5 × 4 | 209,5 × 167,5 × 21 mm | ca. 207 g |
+| `stl/passtest.stl` | – | 3 mm hoch | ca. 7 g |
 
 \* Mit PrusaSlicer gesliced: PLA, 0,2 mm Schichthöhe, 2 Wände, 15 % Gyroid.
 
-**Warum beide Rasierer in einem Halter?** Die Klingenköpfe sind breiter als eine Rastereinheit (41,5 mm). Schon ein einzelner Rasierer braucht deshalb 2 Einheiten Breite. Kopf an Fuß greifen die beiden Umrisse ineinander und passen zusammen in 4 × 2. Einzelne Halter gibt es über `rasierer_auswahl`.
+Die Dose ragt 34,5 mm aus der Station, mit Dose ist alles 55,6 mm hoch (ohne Grundplatte).
+
+![Teile schweben über ihren Mulden](bilder/studio_schwebend.jpg)
+
+## Gestaltung
+
+Gedacht wie der Einsatz in einer Apple-Verpackung: ruhige Flächen, weiche Radien, jedes Teil in seiner passgenauen Mulde.
+
+- **Ein Körper** statt drei Einzelteilen, die Rastergröße rechnet das Modell aus den Maßen selbst aus.
+- **Weiche Ecken:** unten 3,75 mm wie jedes Gridfinity-Teil, nach oben weiter auf 9 mm. Die Oberkante ist mit 2,5 mm gerundet.
+- **Schattenfuge:** Über der Grundplatte springt der Körper umlaufend 1 mm zurück. Dadurch wirkt die Station, als würde sie schweben.
+- **Mulden:** Alle Kanten sind mit 1,5 mm gerundet, alle Böden ausgerundet (Rasierer 2 mm, Klingenfächer 5 mm). Wo eine Form nicht konvex ist, entsteht die Rundung in Stufen von genau einer Schichthöhe. Gedruckt sieht sie aus wie eine echte Rundung.
+- **Dosenmulde:** ein Drehkörper aus dem vermessenen Dosenprofil mit Schulter und Kappe. Die Dose liegt unter ihrer Mitte auf und lässt sich von oben greifen.
+- **Rasierer:** Die Mulden haben exakt den Umriss der Rasierer und greifen Kopf an Fuß ineinander. Eine ovale Griffmulde in der Mitte reicht unter beide Griffe.
+- **Klingenfächer:** zwei Langlöcher, je 20,5 × 75,9 mm und 12 mm tief, mit tief ausgerundetem Boden. Klingen lassen sich mit einem Finger herausschieben.
+
+![Space Grau, leer](bilder/studio_spacegrau_leer.jpg)
 
 ## Woher die Formen kommen
 
@@ -28,8 +39,7 @@ Halter für:
 |---|---|---|
 | kleiner Rasierer | dein Foto von oben (IMG_8033), Seitenfoto (IMG_8035) für die Höhen | Umriss exakt, Größe über den Maßstab |
 | Dose | dein Foto von oben (IMG_8036) | Länge/Durchmesser exakt, Größe über den Maßstab |
-| ProGlide | Produktbild aus dem Netz | Umriss gut, **Größe geschätzt** |
-| Klingenboxen | Schätzwerte | bitte nachmessen |
+| ProGlide | Produktbild aus dem Netz | Umriss gut, **Länge geschätzt** |
 
 So wurde vermessen (`werkzeug/fotos_vermessen.py`):
 
@@ -41,38 +51,39 @@ Ergebnis kleiner Rasierer: **138,0 mm** lang, Kopf **37,5 mm**, Griff 11,8–14,
 
 Die Fotos selbst liegen nicht im Repo, nur die daraus gewonnenen Umrisse in `umrisse.scad`.
 
-## Vor dem Drucken
+## Vor dem Drucken: Passtest
+
+![Passtest](bilder/passtest.png)
 
 Alle Fotomaße hängen an **einer Zahl: dem Dosendurchmesser** (`dose_d`, eingestellt sind 49 mm).
 
-1. `passtest.stl` drucken (3 mm hoch).
+1. `passtest.stl` drucken (3 mm hoch, unter einer Stunde).
 2. Die Dose durch den Ring schieben. Sitzt sie sauber, stimmt der Maßstab für die Dose **und** den kleinen Rasierer. Ist sie zu locker oder klemmt sie, den Durchmesser nachmessen und `dose_d` anpassen. Alles skaliert automatisch mit.
-3. Den kleinen Rasierer in seinen Rahmen legen (KLEIN) und genauso den ProGlide (PROGLIDE). Beim ProGlide ist die Länge noch geschätzt (`pg_laenge = 135`). Passt er nicht, die Gesamtlänge eintragen oder ein Foto wie IMG_8033 machen (von oben, Fernbedienung daneben).
-4. Klingenboxen in die Rahmen legen, ggf. `pg_box_*` und `bi_box_*` anpassen.
+3. Den kleinen Rasierer in seinen Rahmen legen (KLEIN) und genauso den ProGlide (PROGLIDE). Die Rahmen haben genau den Umriss der Mulden. Beim ProGlide ist die Länge noch geschätzt (`pg_laenge = 135`). Passt er nicht, die Gesamtlänge vom Griffende bis zur Klingenoberkante eintragen oder ein Foto wie IMG_8033 machen (von oben, Fernbedienung daneben).
 
 ## Anpassen
 
-- **OpenSCAD** (ab Version 2021.01): `gridfinity_rasierset.scad` öffnen (die Datei `umrisse.scad` muss daneben liegen), *Fenster → Customizer*, Werte ändern, oben bei `teil` das Teil wählen, dann F6 (Rendern) und F7 (STL exportieren).
-- **Kommandozeile**: `./build.sh -D dose_d=50 -D pg_laenge=140` erzeugt alle STLs und Bilder neu.
-- Spiel um die Rasierer: `rasierer_spiel` (0,8 mm). Tiefe der Mulden: `rasierer_tiefe` (13 mm, Griff liegt fast bündig).
-- Mehrere Klingenboxen: `pg_box_anzahl`, `bi_box_anzahl`.
-- Nur ein Rasierer pro Halter: `rasierer_auswahl = "proglide"` oder `"klein"`.
+- **OpenSCAD** (ab Version 2021.01): `gridfinity_rasierset.scad` öffnen (die Datei `umrisse.scad` muss daneben liegen), *Fenster → Customizer*, Werte ändern, dann F6 (Rendern) und F7 (STL exportieren).
+- **Kommandozeile**: `./build.sh -D dose_d=50 -D pg_laenge=140` erzeugt die STLs und Bilder neu. Mit Blender kommen die Studio-Renderings dazu (`werkzeug/rendern.py`), `BLENDER=0 ./build.sh` lässt sie weg.
+- Spiel um die Rasierer: `rasierer_spiel` (0,8 mm). Tiefe der Mulden: `rasierer_tiefe` (13 mm, der Griff liegt fast bündig).
+- Klingenfächer: `fach_tiefe` (12 mm) und `fach_breite_min` (20 mm). Die Fächer füllen immer die Breite neben den Rasierern.
+- Radien: `ecken_r`, `kante_r`, `mulden_r`, `boden_r`, `fach_boden_r`. Schattenfuge: `fuge` (0 = aus). Stufenhöhe der Rundungen: `schicht` (= Schichthöhe beim Drucken).
 - Löcher für 6 × 2-mm-Magnete: `magnete = true` (im Bad eher weglassen, Magnete rosten).
 - Neue Fotos auswerten: `werkzeug/fotos_vermessen.py` und `werkzeug/umriss_aus_bild.py` (Aufruf steht jeweils oben in der Datei).
 
 ## Druck
 
-- PETG ist im Bad die bessere Wahl, PLA geht auch.
-- So drucken, wie exportiert: Füße nach unten. Keine Stützen und kein Brim nötig.
-- 0,2 mm Schichthöhe, 2–3 Wände, 10–15 % Infill.
-- Die Wiege ist 209,5 mm lang, das Druckbett muss also mindestens so groß sein.
+- Das Druckbett muss mindestens 210 × 170 mm groß sein.
+- PETG ist im Bad die bessere Wahl, PLA geht auch. Mit mattem Filament in Weiß oder Grau sind Schichtlinien kaum zu sehen.
+- So drucken, wie exportiert: Füße nach unten. Keine Stützen und kein Brim nötig. PrusaSlicer meldet „Long bridging extrusions“: Das sind die 0,5 mm schmalen Spalte zwischen den Gridfinity-Füßen, die gleiche Meldung kommt auch bei einem leeren 5 × 4-Block ohne Mulden. Sie kann ignoriert werden.
+- 0,2 mm Schichthöhe, 2–3 Wände, 10–15 % Infill. Mit 0,12–0,16 mm werden die Rundungen glatter, dann `schicht` auf denselben Wert setzen und neu exportieren.
+- Für den Apple-Look: **Bügeln (Ironing)** für die oberste Fläche einschalten, Naht auf *Hinten* legen.
+- Zweifarbig: Farbwechsel bei etwa 6 mm Höhe. Füße und Schattenfuge werden dann dunkel, der Körper hell, und die Fuge wirkt noch tiefer.
 
 ## Gridfinity
 
-42-mm-Raster, 7-mm-Höheneinheit und Fußprofil 0,8 / 1,8 / 2,15 mm nach Zack Freedmans Spezifikation. Die Teile passen in jede Standard-Grundplatte. Eine Stapellippe gibt es nicht, weil auf diesen Haltern nichts gestapelt wird.
+42-mm-Raster, 7-mm-Höheneinheit und Fußprofil 0,8 / 1,8 / 2,15 mm nach Zack Freedmans Spezifikation. Die Station passt in jede Standard-Grundplatte. Eine Stapellippe gibt es nicht, weil darauf nichts gestapelt wird.
 
-![Draufsicht](bilder/draufsicht.png)
+![Draufsicht](bilder/studio_draufsicht.jpg)
 
-| Rasierer-Halter | Klingenbox-Halter | Rasierschaum-Wiege | Passtest |
-|---|---|---|---|
-| ![](bilder/rasierer_halter.png) | ![](bilder/klingenbox_halter.png) | ![](bilder/rasierschaum_wiege.png) | ![](bilder/passtest.png) |
+Schnelle Vorschau ohne Blender, direkt aus OpenSCAD: [bilder/uebersicht.png](bilder/uebersicht.png)
